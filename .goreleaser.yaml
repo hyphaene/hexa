@@ -54,7 +54,7 @@ brews:
       branch: main
       token: "{{ .Env.TAP_GITHUB_TOKEN }}"
 
-    directory: .
+    directory: Formula
 
     # Create hw symlink → hexa
     install: |
