@@ -58,16 +58,16 @@ hexa jira sprint id
 
 ```bash
 # Gestion des tickets
-hexa jira ticket get SEE-12345 [--format json|summary]
-hexa jira ticket move SEE-12345 --status "In Progress"
-hexa jira ticket comment SEE-12345 "Votre commentaire"
+hexa jira ticket get TEAM-12345 [--format json|summary]
+hexa jira ticket move TEAM-12345 --status "In Progress"
+hexa jira ticket comment TEAM-12345 "Votre commentaire"
 
 # Pièces jointes
-hexa jira ticket attachments SEE-12345 [--list|--download]
-hexa jira ticket attachments SEE-12345 --download [--output-dir ./downloads]
+hexa jira ticket attachments TEAM-12345 [--list|--download]
+hexa jira ticket attachments TEAM-12345 --download [--output-dir ./downloads]
 
 # Catégorisation intelligente
-hexa jira ticket categorize SEE-12345
+hexa jira ticket categorize TEAM-12345
 ```
 
 **Mapping des scripts** :
@@ -79,118 +79,118 @@ hexa jira ticket categorize SEE-12345
 - `download_attachments.sh` → `hexa jira ticket attachments --download`
 - `jira_categorize.sh` → `hexa jira ticket categorize`
 
-#### 1.3 Release Management (`adeo-workflow jira release`)
+#### 1.3 Release Management (`hexa jira release`)
 
 ```bash
 # Gestion des release notes
-adeo-workflow jira release notes [DATA_FILE] [--command report|update-all|update-mine]
-adeo-workflow jira release notes [DATA_FILE] --two-steps
+hexa jira release notes [DATA_FILE] [--command report|update-all|update-mine]
+hexa jira release notes [DATA_FILE] --two-steps
 
 # Validation des versions
-adeo-workflow jira release verify [--version VERSION]
+hexa jira release verify [--version VERSION]
 
 # Récupération des tickets par version
-adeo-workflow jira release tickets --version VERSION [--format json|table]
+hexa jira release tickets --version VERSION [--format json|table]
 ```
 
 **Mapping des scripts** :
 
-- `release_notes_manager.sh` → `adeo-workflow jira release notes`
-- `release_notes_two_steps.sh` → `adeo-workflow jira release notes --two-steps`
-- `verify_version_completeness.sh` → `adeo-workflow jira release verify`
-- `fetch_version_tickets.sh` → `adeo-workflow jira release tickets`
+- `release_notes_manager.sh` → `hexa jira release notes`
+- `release_notes_two_steps.sh` → `hexa jira release notes --two-steps`
+- `verify_version_completeness.sh` → `hexa jira release verify`
+- `fetch_version_tickets.sh` → `hexa jira release tickets`
 
-#### 1.4 Development Workflow (`adeo-workflow jira dev`)
+#### 1.4 Development Workflow (`hexa jira dev`)
 
 ```bash
 # Setup de tâche (worktree + contexte)
-adeo-workflow jira dev setup SEE-12345 [--suffix SUFFIX] [--type feat|fix|hotfix]
+hexa jira dev setup TEAM-12345 [--suffix SUFFIX] [--type feat|fix|hotfix]
 
 # Synchronisation centrale
-adeo-workflow jira dev sync --from-central [TICKET_KEY]
-adeo-workflow jira dev sync --to-central
+hexa jira dev sync --from-central [TICKET_KEY]
+hexa jira dev sync --to-central
 ```
 
 **Mapping des scripts** :
 
-- `setup_task.sh` → `adeo-workflow jira dev setup`
-- `sync_from_central.sh` → `adeo-workflow jira dev sync --from-central`
-- `sync_to_central.sh` → `adeo-workflow jira dev sync --to-central`
+- `setup_task.sh` → `hexa jira dev setup`
+- `sync_from_central.sh` → `hexa jira dev sync --from-central`
+- `sync_to_central.sh` → `hexa jira dev sync --to-central`
 
-#### 1.5 Testing & Utilities (`adeo-workflow jira test`)
+#### 1.5 Testing & Utilities (`hexa jira test`)
 
 ```bash
 # Tests rapides
-adeo-workflow jira test comment [TICKET_KEY]
-adeo-workflow jira test tag [TICKET_KEY]
-adeo-workflow jira test slack [MESSAGE]
+hexa jira test comment [TICKET_KEY]
+hexa jira test tag [TICKET_KEY]
+hexa jira test slack [MESSAGE]
 ```
 
 **Mapping des scripts** :
 
-- `test_comment.sh` → `adeo-workflow jira test comment`
-- `test_tag.sh` → `adeo-workflow jira test tag`
-- `test_slack.sh` → `adeo-workflow jira test slack`
+- `test_comment.sh` → `hexa jira test comment`
+- `test_tag.sh` → `hexa jira test tag`
+- `test_slack.sh` → `hexa jira test slack`
 
 ### 2. Domaine GIT (`git`)
 
-#### 2.1 Repository Management (`adeo-workflow git repo`)
+#### 2.1 Repository Management (`hexa git repo`)
 
 ```bash
 # Status multi-repos
-adeo-workflow git repo status [--format table|json]
+hexa git repo status [--format table|json]
 
 # Collection des repos
-adeo-workflow git repo collect [--path PATH]
+hexa git repo collect [--path PATH]
 
 # Worktree management
-adeo-workflow git worktree create BRANCH_NAME [--from BRANCH]
+hexa git worktree create BRANCH_NAME [--from BRANCH]
 ```
 
 **Mapping des scripts** :
 
-- `multi-repo-status.sh` → `adeo-workflow git repo status`
-- `git/collect-git-repos.sh` → `adeo-workflow git repo collect`
-- `create-worktree.sh` → `adeo-workflow git worktree create`
+- `multi-repo-status.sh` → `hexa git repo status`
+- `git/collect-git-repos.sh` → `hexa git repo collect`
+- `create-worktree.sh` → `hexa git worktree create`
 
-#### 2.2 Analysis (`adeo-workflow git analyze`)
+#### 2.2 Analysis (`hexa git analyze`)
 
 ```bash
 # Analyse de cherry-pick
-adeo-workflow git analyze cherry-pick [--commits COMMITS]
+hexa git analyze cherry-pick [--commits COMMITS]
 
 # Recherche raw
-adeo-workflow git analyze search [PATTERN] [--raw]
+hexa git analyze search [PATTERN] [--raw]
 ```
 
 **Mapping des scripts** :
 
-- `analyse-cherry-pick.sh` → `adeo-workflow git analyze cherry-pick`
-- `search-raw.sh` → `adeo-workflow git analyze search`
+- `analyse-cherry-pick.sh` → `hexa git analyze cherry-pick`
+- `search-raw.sh` → `hexa git analyze search`
 
 ### 3. Domaine SETUP (`setup`)
 
-#### 3.1 Environment Setup (`adeo-workflow setup env`)
+#### 3.1 Environment Setup (`hexa setup env`)
 
 ```bash
 # Configuration des symlinks
-adeo-workflow setup env claude-md
-adeo-workflow setup env alexandria
-adeo-workflow setup env commands
-adeo-workflow setup env agents
-adeo-workflow setup env settings
+hexa setup env claude-md
+hexa setup env alexandria
+hexa setup env commands
+hexa setup env agents
+hexa setup env settings
 
 # Setup complet
-adeo-workflow setup env all
+hexa setup env all
 ```
 
 **Mapping des scripts** :
 
-- `setup-claude-md-symlink.sh` → `adeo-workflow setup env claude-md`
-- `setup-alexandria-symlink.sh` → `adeo-workflow setup env alexandria`
-- `setup-commands-symlinks.sh` → `adeo-workflow setup env commands`
-- `setup-agents-symlinks.sh` → `adeo-workflow setup env agents`
-- `setup-settings-symlink.sh` → `adeo-workflow setup env settings`
+- `setup-claude-md-symlink.sh` → `hexa setup env claude-md`
+- `setup-alexandria-symlink.sh` → `hexa setup env alexandria`
+- `setup-commands-symlinks.sh` → `hexa setup env commands`
+- `setup-agents-symlinks.sh` → `hexa setup env agents`
+- `setup-settings-symlink.sh` → `hexa setup env settings`
 
 ### 4. Domaine AI (`ai`)
 
@@ -245,9 +245,9 @@ hexa/
 ```yaml
 # ~/.hexa.yaml
 jira:
-  url: "https://jira.adeo.com"
+  url: "https://jira.xxxx.com"
   token: "${JIRA_PAT}"
-  default_project: "SEE"
+  default_project: "TEAM"
 
 git:
   default_branch: "develop"
@@ -268,7 +268,7 @@ aliases:
   wip: "jira ticket move {ticket} --status 'In Progress' && jira ticket comment {ticket} 'Work in progress'"
 
 user:
-  me: "maximilien.garenne1@ext.adeo.com"
+  me: "maximilien.garenne@somecompany.com"
 ```
 
 ## Smart Completion & Help (Phase 1)
@@ -290,8 +290,8 @@ hexa completion bash > /etc/bash_completion.d/hexa
 hexa completion zsh > ~/.zsh/completions/_hexa
 
 # Completion dynamique (API calls)
-hw ticket comment <TAB>             # → Tes tickets actifs (SEE-12345, SEE-12346...)
-hw ticket move SEE-12345 --status <TAB>  # → Transitions disponibles ("In Progress", "Done"...)
+hw ticket comment <TAB>             # → Tes tickets actifs (TEAM-12345, TEAM-12346...)
+hw ticket move TEAM-12345 --status <TAB>  # → Transitions disponibles ("In Progress", "Done"...)
 hw setup env <TAB>                  # → claude-md, alexandria, commands, agents, all
 ```
 
@@ -301,7 +301,7 @@ hw setup env <TAB>                  # → claude-md, alexandria, commands, agent
 # Cache 5min pour éviter appels répétés
 ~/.hexa/cache/
 ├── tickets_active.json     # Tes tickets actifs
-├── transitions_SEE.json    # Transitions possibles
+├── transition_TEAM.json    # Transitions possibles
 └── sprints_current.json    # Sprint actuel
 ```
 
@@ -310,12 +310,12 @@ hw setup env <TAB>                  # → claude-md, alexandria, commands, agent
 ```bash
 # Aliases simples
 hw overview                    # → hw jira sprint overview --user me
-hw comment SEE-12345 "msg"     # → hw jira ticket comment SEE-12345 "msg"
-hw setup SEE-12345             # → hw jira dev setup SEE-12345
+hw comment TEAM-12345 "msg"     # → hw jira ticket comment TEAM-12345 "msg"
+hw setup TEAM-12345             # → hw jira dev setup TEAM-12345
 
 # Workflows composés
 hw daily                       # Exécute overview + git status
-hw wip SEE-12345              # → move + comment automatiques
+hw wip TEAM-12345              # → move + comment automatiques
 ```
 
 ## Exemples d'usage
@@ -328,16 +328,16 @@ hexa jira sprint overview --user me
 hw overview                            # Alias équivalent
 
 # 2. Setup d'une nouvelle tâche
-hexa jira dev setup SEE-12345 --type feat
-hw setup SEE-12345                     # Alias équivalent
+hexa jira dev setup TEAM-12345 --type feat
+hw setup TEAM-12345                     # Alias équivalent
 
 # 3. Ajouter un commentaire
-hexa jira ticket comment SEE-12345 "Work in progress on authentication"
-hw comment SEE-12345 "Work in progress on authentication"  # Alias
+hexa jira ticket comment TEAM-12345 "Work in progress on authentication"
+hw comment TEAM-12345 "Work in progress on authentication"  # Alias
 
 # 4. Déplacer le ticket (avec completion)
-hexa jira ticket move SEE-12345 --status "In Progress"
-hw wip SEE-12345                       # Alias avec move + comment automatique
+hexa jira ticket move TEAM-12345 --status "In Progress"
+hw wip TEAM-12345                       # Alias avec move + comment automatique
 
 # 5. Workflow complet quotidien
 hw daily                               # overview + git status
@@ -381,5 +381,3 @@ hexa jira release notes ./release_data.json --command update-all
 2. **Configuration Viper** pour remplacer le sourcing de `.env`
 3. **Migration progressive** script par script
 4. **Tests** pour s'assurer de la parité fonctionnelle
-
-Qu'est-ce qui te semble le plus prioritaire pour commencer ?
