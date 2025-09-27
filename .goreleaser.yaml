@@ -39,10 +39,10 @@ archives:
       {{- if .Arm }}v{{ .Arm }}{{ end }}
     format_overrides:
       - goos: windows
-        format: zip
+        formats: [zip]
 
 # Homebrew tap auto-generation
-brews:
+homebrew:
   - name: hexa
     description: "Hexactitude CLI - Unified automation and scripting toolkit"
     homepage: "https://github.com/hyphaene/hexa"
