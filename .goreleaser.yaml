@@ -42,7 +42,7 @@ archives:
         formats: [zip]
 
 # Homebrew tap auto-generation
-homebrew:
+brews:
   - name: hexa
     description: "Hexactitude CLI - Unified automation and scripting toolkit"
     homepage: "https://github.com/hyphaene/hexa"
