@@ -14,6 +14,7 @@ hw [DOMAIN] [COMMAND] [SUBCOMMAND] [FLAGS]    # Alias court
 ## Naming & Distribution
 
 ### Nom validé : `hexa` (alias `hw`)
+
 - **Nom principal** : `hexa` (lien avec Hexactitude, unique, mémorable)
 - **Alias court** : `hw` (usage quotidien, 2 caractères)
 - **Setup** : Symlink automatique `hw` → `hexa`
@@ -21,6 +22,7 @@ hw [DOMAIN] [COMMAND] [SUBCOMMAND] [FLAGS]    # Alias court
 ## Stratégie de packaging validée
 
 ### Phase 1 : Wrapper avec scripts embarqués (embed)
+
 - **Single binary** : Scripts bash intégrés via `//go:embed`
 - **Distribution simplifiée** : Un seul fichier exécutable
 - **Migration progressive** : Remplacer script par script par du Go pur selon priorité
@@ -46,6 +48,7 @@ hexa jira sprint id
 ```
 
 **Mapping des scripts** :
+
 - `jira_overview.sh` → `hexa jira sprint overview`
 - `get_current_sprint.sh` → `hexa jira sprint current`
 - `fetch_all_sprint_tickets.sh` → `hexa jira sprint tickets`
@@ -68,6 +71,7 @@ hexa jira ticket categorize SEE-12345
 ```
 
 **Mapping des scripts** :
+
 - `jira_fetch.sh` → `hexa jira ticket get`
 - `move_ticket.sh` → `hexa jira ticket move`
 - `add_comment.sh` → `hexa jira ticket comment`
@@ -90,6 +94,7 @@ adeo-workflow jira release tickets --version VERSION [--format json|table]
 ```
 
 **Mapping des scripts** :
+
 - `release_notes_manager.sh` → `adeo-workflow jira release notes`
 - `release_notes_two_steps.sh` → `adeo-workflow jira release notes --two-steps`
 - `verify_version_completeness.sh` → `adeo-workflow jira release verify`
@@ -107,6 +112,7 @@ adeo-workflow jira dev sync --to-central
 ```
 
 **Mapping des scripts** :
+
 - `setup_task.sh` → `adeo-workflow jira dev setup`
 - `sync_from_central.sh` → `adeo-workflow jira dev sync --from-central`
 - `sync_to_central.sh` → `adeo-workflow jira dev sync --to-central`
@@ -121,6 +127,7 @@ adeo-workflow jira test slack [MESSAGE]
 ```
 
 **Mapping des scripts** :
+
 - `test_comment.sh` → `adeo-workflow jira test comment`
 - `test_tag.sh` → `adeo-workflow jira test tag`
 - `test_slack.sh` → `adeo-workflow jira test slack`
@@ -141,6 +148,7 @@ adeo-workflow git worktree create BRANCH_NAME [--from BRANCH]
 ```
 
 **Mapping des scripts** :
+
 - `multi-repo-status.sh` → `adeo-workflow git repo status`
 - `git/collect-git-repos.sh` → `adeo-workflow git repo collect`
 - `create-worktree.sh` → `adeo-workflow git worktree create`
@@ -156,6 +164,7 @@ adeo-workflow git analyze search [PATTERN] [--raw]
 ```
 
 **Mapping des scripts** :
+
 - `analyse-cherry-pick.sh` → `adeo-workflow git analyze cherry-pick`
 - `search-raw.sh` → `adeo-workflow git analyze search`
 
@@ -176,11 +185,33 @@ adeo-workflow setup env all
 ```
 
 **Mapping des scripts** :
+
 - `setup-claude-md-symlink.sh` → `adeo-workflow setup env claude-md`
 - `setup-alexandria-symlink.sh` → `adeo-workflow setup env alexandria`
 - `setup-commands-symlinks.sh` → `adeo-workflow setup env commands`
 - `setup-agents-symlinks.sh` → `adeo-workflow setup env agents`
 - `setup-settings-symlink.sh` → `adeo-workflow setup env settings`
+
+### 4. Domaine AI (`ai`)
+
+#### 4.1 Claude Code Surcouches (`hexa ai cc`)
+
+```bash
+# Surcouches sympas pour Claude Code
+hexa ai cc pull-request
+hexa ai cc workflow
+
+```
+
+#### 4.2 Trucs IA à creuser (`hexa ai explore`)
+
+```bash
+# Idées à développer
+hexa ai code-analysis [FILES...]
+
+hexa ai bug-hunter [--auto-fix]
+hexa ai docs-gen [--intelligent]
+```
 
 ## Structure du projet Go
 
@@ -243,6 +274,7 @@ user:
 ## Smart Completion & Help (Phase 1)
 
 ### Help automatique à tous les niveaux
+
 ```bash
 hexa --help                         # Root help
 hexa jira --help                    # Domain help
@@ -251,6 +283,7 @@ hexa jira sprint overview --help    # Specific command help
 ```
 
 ### Autocomplétion intelligente
+
 ```bash
 # Setup
 hexa completion bash > /etc/bash_completion.d/hexa
@@ -263,6 +296,7 @@ hw setup env <TAB>                  # → claude-md, alexandria, commands, agent
 ```
 
 ### Cache intelligent
+
 ```bash
 # Cache 5min pour éviter appels répétés
 ~/.hexa/cache/
@@ -272,6 +306,7 @@ hw setup env <TAB>                  # → claude-md, alexandria, commands, agent
 ```
 
 ### Usage aliases
+
 ```bash
 # Aliases simples
 hw overview                    # → hw jira sprint overview --user me
