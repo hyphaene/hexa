@@ -192,6 +192,27 @@ hexa setup env all
 - `setup-agents-symlinks.sh` → `hexa setup env agents`
 - `setup-settings-symlink.sh` → `hexa setup env settings`
 
+### 4. Domaine AI (`ai`)
+
+#### 4.1 Claude Code Surcouches (`hexa ai cc`)
+
+```bash
+# Surcouches sympas pour Claude Code
+hexa ai cc pull-request
+hexa ai cc workflow
+
+```
+
+#### 4.2 Trucs IA à creuser (`hexa ai explore`)
+
+```bash
+# Idées à développer
+hexa ai code-analysis [FILES...]
+
+hexa ai bug-hunter [--auto-fix]
+hexa ai docs-gen [--intelligent]
+```
+
 ## Structure du projet Go
 
 ```
@@ -226,7 +247,7 @@ hexa/
 jira:
   url: "https://jira.xxxx.com"
   token: "${JIRA_PAT}"
-  default_project: "SEE"
+  default_project: "TEAM"
 
 git:
   default_branch: "develop"
@@ -280,7 +301,7 @@ hw setup env <TAB>                  # → claude-md, alexandria, commands, agent
 # Cache 5min pour éviter appels répétés
 ~/.hexa/cache/
 ├── tickets_active.json     # Tes tickets actifs
-├── transitions_SEE.json    # Transitions possibles
+├── transition_TEAM.json    # Transitions possibles
 └── sprints_current.json    # Sprint actuel
 ```
 
