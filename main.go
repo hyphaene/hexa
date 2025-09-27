@@ -1,6 +1,12 @@
 package main
 
-import "github.com/hyphaene/hexa/cmd"
+import (
+	"github.com/hyphaene/hexa/cmd"
+
+	// Import JIRA commands to trigger their init() functions
+	_ "github.com/hyphaene/hexa/cmd/jira"
+	_ "github.com/hyphaene/hexa/cmd/jira/ticket"
+)
 
 // Variables injected by GoReleaser at build time
 var (
