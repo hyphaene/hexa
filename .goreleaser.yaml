@@ -1,0 +1,104 @@
+# GoReleaser configuration for Hexa CLI
+# Documentation: https://goreleaser.com
+
+version: 2
+
+project_name: hexa
+
+before:
+  hooks:
+    - go mod tidy
+    - go test ./...
+
+builds:
+  - id: hexa
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - windows
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+    # Optimizations (same as Homebrew)
+    ldflags:
+      - -s -w
+      - -X main.version={{.Version}}
+      - -X main.commit={{.Commit}}
+      - -X main.date={{.Date}}
+
+archives:
+  - id: hexa
+    name_template: >-
+      {{ .ProjectName }}_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+      {{- if .Arm }}v{{ .Arm }}{{ end }}
+    format_overrides:
+      - goos: windows
+        format: zip
+
+# Homebrew tap auto-generation
+brews:
+  - name: hexa
+    description: "Hexactitude CLI - Unified automation and scripting toolkit"
+    homepage: "https://github.com/hyphaene/hexa"
+    license: "MIT"
+
+    repository:
+      owner: hyphaene
+      name: homebrew-hexa
+      branch: main
+      token: "{{ .Env.TAP_GITHUB_TOKEN }}"
+
+    directory: .
+
+    # Create hw symlink → hexa
+    install: |
+      bin.install "hexa"
+      bin.install_symlink bin/"hexa" => "hw"
+
+    test: |
+      system "#{bin}/hexa", "--help"
+      system "#{bin}/hw", "--help"
+
+changelog:
+  sort: asc
+  use: github
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "^chore:"
+  groups:
+    - title: Features
+      regexp: '^.*?feat(\([[:word:]]+\))??!?:.+$'
+      order: 0
+    - title: Bug fixes
+      regexp: '^.*?fix(\([[:word:]]+\))??!?:.+$'
+      order: 1
+    - title: Others
+      order: 999
+
+release:
+  prerelease: auto
+  header: |
+    ## 🚀 Hexa CLI {{.Tag}}
+
+    ### Installation
+    ```bash
+    # Via Homebrew (recommended)
+    brew install hyphaene/hexa
+
+    # Or download binary directly
+    # See assets below
+    ```
+  footer: |
+    ---
+
+    **Full changelog**: https://github.com/hyphaene/hexa/compare/{{.PreviousTag}}...{{.Tag}}
+
+    Released by [GoReleaser](https://github.com/goreleaser/goreleaser) 🚀

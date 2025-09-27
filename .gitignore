@@ -34,3 +34,5 @@ Thumbs.db
 # Local configuration
 *.local.*
 .env.local
+
+gitignored
