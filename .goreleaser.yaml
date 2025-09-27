@@ -91,6 +91,10 @@ release:
     ### Installation
     ```bash
     # Via Homebrew (recommended)
+    brew tap hyphaene/hexa
+    brew install hexa
+
+    # Or direct install
     brew install hyphaene/hexa/hexa
 
     # Or download binary directly

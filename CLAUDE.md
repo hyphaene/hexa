@@ -13,6 +13,7 @@ Ce projet est une **base d'apprentissage Go** pour monter en compétence sur l'�
 ## Architecture
 
 ### Structure actuelle (minimale)
+
 ```
 hexa/
 ├── main.go                 # Point d'entrée → cmd.Execute()
@@ -25,6 +26,7 @@ hexa/
 ```
 
 ### Architecture cible (selon CLI_GO_PROPOSAL.md)
+
 - **Domaines** : JIRA, GIT, SETUP, AI
 - **Framework** : Cobra (commandes + flags + help)
 - **Configuration** : Viper (YAML + env vars)
@@ -32,6 +34,7 @@ hexa/
 - **Distribution** : Homebrew avec symlink `hw` → `hexa`
 
 ### Stack technique
+
 - **Go** : 1.24.4
 - **CLI Framework** : Cobra v1.10.1
 - **Distribution** : GoReleaser + Homebrew tap
@@ -39,6 +42,7 @@ hexa/
 ## Commandes de développement
 
 ### Build & Run
+
 ```bash
 # Build simple
 go build
@@ -55,6 +59,7 @@ go run main.go [args]
 ```
 
 ### Tests
+
 ```bash
 # Run tous les tests
 go test ./...
@@ -67,6 +72,7 @@ go test -cover ./...
 ```
 
 ### GoReleaser
+
 ```bash
 # Test build local (snapshot)
 goreleaser release --snapshot --rm-dist
@@ -76,6 +82,7 @@ goreleaser release --rm-dist
 ```
 
 ### Vérifications Go
+
 ```bash
 # Modules management
 go mod tidy
@@ -94,23 +101,27 @@ go vet ./...
 ## Concepts Go clés pour l'apprentissage
 
 ### Packages et modules
+
 - `go.mod` : Définition du module et dépendances
 - Import paths : `github.com/hyphaene/hexa/cmd`
 - Package main : Point d'entrée avec `func main()`
 
 ### Cobra CLI patterns
+
 - **Root command** : `cmd/root.go` avec `&cobra.Command{}`
 - **Subcommands** : `rootCmd.AddCommand()` dans `init()`
 - **Flags** : Persistent vs local flags
 - **Help** : Automatique avec descriptions
 
 ### Embedding avec `//go:embed`
+
 ```go
 //go:embed scripts/*.sh
 var scriptsFS embed.FS
 ```
 
 ### Configuration avec Viper
+
 - YAML config files
 - Environment variables
 - Flags precedence
@@ -118,15 +129,26 @@ var scriptsFS embed.FS
 ## Distribution & Installation
 
 ### Homebrew (production)
+
 ```bash
-# Installation
-brew install hyphaene/hexa/hexa
+# Add tap first
+brew tap hyphaene/hexa
+
+# Install hexa
+brew install hexa
 
 # Usage avec alias
 hw --help    # Équivalent à hexa --help
 ```
 
+#### Homebrew Tap Repository
+
+- **Path local** : `~/Code/homebrew-hexa` (repo séparé)
+- **GitHub** : [github.com/hyphaene/homebrew-hexa](https://github.com/hyphaene/homebrew-hexa)
+- **Auto-update** : GoReleaser push automatiquement les nouvelles versions
+
 ### Development
+
 ```bash
 # Build local
 go build -o hexa

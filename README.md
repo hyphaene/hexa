@@ -7,13 +7,15 @@ Hexactitude CLI - Unified automation and scripting toolkit
 ### Via Homebrew (recommended)
 
 ```bash
-brew install hyphaene/hexa/hexa
-```
+# Add the tap first
+brew tap hyphaene/hexa
 
-Or with the shorter alias `hw`:
+# Then install hexa
+brew install hexa
 
-```bash
-hw --help
+# Verify installation with both commands
+hexa --help
+hw --help   # Short alias
 ```
 
 ### Manual Installation
