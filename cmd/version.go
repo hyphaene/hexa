@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/spf13/cobra"
 )
@@ -13,8 +14,16 @@ func init() {
 var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Print the version number of hexa",
-	Long:  `All software has versions. This is hexa's`,
+	Long:  `Display the version number of hexa.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("Hexa CLI v0.1.0 -- HEAD")
+		// Format version string
+		version := appVersion
+		if version == "" || version == "dev" {
+			version = "dev"
+		} else if !strings.HasPrefix(version, "v") {
+			version = "v" + version
+		}
+
+		fmt.Println(version)
 	},
 }

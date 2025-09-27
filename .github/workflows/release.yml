@@ -24,30 +24,36 @@ jobs:
           go-version: '1.24'
           cache: true
 
-      - name: Generate version
-        id: version
-        run: |
-          # Get latest tag or default to v0.0.0
-          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
-          echo "Latest tag: $LATEST_TAG"
-
-          # Increment patch version for each push to main
-          VERSION=$(echo $LATEST_TAG | sed 's/v//' | awk -F. '{$NF++; print $1"."$2"."$NF}')
-          NEW_TAG="v$VERSION"
-
-          echo "New version: $NEW_TAG"
-          echo "version=$NEW_TAG" >> $GITHUB_OUTPUT
+      - name: Calculate next version
+        id: semver
+        uses: ietf-tools/semver-action@v1
+        with:
+          token: ${{ github.token }}
+          branch: main
 
       - name: Create and push tag
+        if: steps.semver.outputs.bump != 'none'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          echo "Version bump: ${{ steps.semver.outputs.bump }}"
+          echo "Current version: ${{ steps.semver.outputs.current }}"
+          echo "Next version: ${{ steps.semver.outputs.next }}"
+
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git tag ${{ steps.version.outputs.version }}
-          git push origin ${{ steps.version.outputs.version }}
+          git tag ${{ steps.semver.outputs.next }}
+          git push origin ${{ steps.semver.outputs.next }}
+
+      - name: Skip release
+        if: steps.semver.outputs.bump == 'none'
+        run: |
+          echo "No version bump needed - skipping release"
+          echo "Current version: ${{ steps.semver.outputs.current }}"
+          echo "Latest commits do not require a new release"
 
       - name: Run GoReleaser
+        if: steps.semver.outputs.bump != 'none'
         uses: goreleaser/goreleaser-action@v6
         with:
           distribution: goreleaser
@@ -56,3 +62,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAP_GITHUB_TOKEN: ${{ secrets.TAP_GITHUB_TOKEN }}
+          GORELEASER_CURRENT_TAG: ${{ steps.semver.outputs.next }}
