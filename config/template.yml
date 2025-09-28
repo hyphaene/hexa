@@ -1,0 +1,26 @@
+jira:
+  url: "https://your-jira-instance.com"
+  token: "${HEXA_JIRA_PAT}" # Set your JIRA_PAT environment variable
+  default_project: "YOUR_PROJECT"
+  timeout: 30
+  retry: 3
+
+git:
+  default_branch: "main"
+  worktree_base: "${HOME}/worktrees"
+  auto_push: false
+
+slack:
+  webhook_url: "${SLACK_WEBHOOK_URL}"
+
+user:
+  me: "${HEXA_USER_EMAIL}" # Auto-detected from git config
+
+# Aliases for common commands
+aliases:
+  overview: "jira sprint overview --user me"
+  setup: "jira dev setup"
+  comment: "jira ticket comment"
+  move: "jira ticket move"
+  daily: ["jira sprint overview --user me", "git repo status"]
+  wip: "jira ticket move {ticket} --status 'In Progress' && jira ticket comment {ticket} 'Work in progress'"

@@ -5,8 +5,6 @@ import (
 )
 
 var (
-
-	// Version info injected at build time
 	AppVersion  string
 	buildCommit string
 	buildDate   string
