@@ -4,24 +4,36 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"gopkg.in/yaml.v3"
 
 	"github.com/hyphaene/hexa/internal/env"
+	"github.com/joho/godotenv"
 	"github.com/spf13/viper"
 )
 
 // Initialize loads root and project configurations into the global Viper instance
 func Initialize() {
+	err := godotenv.Load()
+	if err != nil && env.Debug {
+		fmt.Println("No .env file found (this is ok)")
+	}
 	rootConfig := getRootConfig()
 	projectConfig := getProjectConfig()
+	secretProjectConfig := getSecretProjectConfig()
+
+	// Merge secret project config last to override any previous settings
 
 	// Clear any existing config
 	viper.Reset()
-
+	viper.SetEnvPrefix("HEXA")
+	viper.AutomaticEnv()
+	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	// Merge configurations with project config taking precedence
 	viper.MergeConfigMap(rootConfig)
-	viper.MergeConfigMap(projectConfig) // project override root
+	viper.MergeConfigMap(projectConfig)       // project override root
+	viper.MergeConfigMap(secretProjectConfig) // secret project override project
 
 	if env.Debug {
 		fmt.Println("Viper configuration initialized successfully")
@@ -54,6 +66,23 @@ func getProjectConfig() map[string]interface{} {
 	}
 
 	configPath := filepath.Join(workingDir, ".hexa.yml")
+	if env.Debug {
+		fmt.Println("Attempting to read project config from:", configPath)
+	}
+
+	return getConfig(configPath)
+}
+
+func getSecretProjectConfig() map[string]interface{} {
+	workingDir, err := os.Getwd()
+	if err != nil {
+		if env.Debug {
+			fmt.Println("Error getting working directory:", err)
+		}
+		return nil
+	}
+
+	configPath := filepath.Join(workingDir, ".hexa.local.yml")
 	if env.Debug {
 		fmt.Println("Attempting to read project config from:", configPath)
 	}

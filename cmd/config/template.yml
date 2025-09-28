@@ -1,6 +1,6 @@
 jira:
   url: "https://your-jira-instance.com"
-  token: "${HEXA_JIRA_PAT}" # Set your JIRA_PAT environment variable
+  token: "${HEXA_JIRA_TOKEN}" # Set your JIRA_TOKEN environment variable
   default_project: "YOUR_PROJECT"
   timeout: 30
   retry: 3
@@ -14,7 +14,7 @@ slack:
   webhook_url: "${SLACK_WEBHOOK_URL}"
 
 user:
-  me: "${HEXA_USER_EMAIL}" # Auto-detected from git config
+  email: "${HEXA_USER_EMAIL}"
 
 # Aliases for common commands
 aliases:

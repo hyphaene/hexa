@@ -143,7 +143,7 @@ func createOrUpgradeConfig(configPath string) error {
 
 jira:
   url: "https://your-jira-instance.com"
-  token: "${HEXA_JIRA_PAT}" # Set your JIRA_PAT environment variable
+  token: "${HEXA_JIRA_TOKEN}"
   default_project: "YOUR_PROJECT"
   timeout: 30
   retry: 3

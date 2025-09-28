@@ -39,3 +39,5 @@ Thumbs.db
 gitignored
 
 .hexa.yml
+.hexa.local.yml
+.env
