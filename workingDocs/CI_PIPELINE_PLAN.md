@@ -1,6 +1,9 @@
+# Plan
+
 Ce plan vise à enrichir la CI pour couvrir lint, tests, build et contrôles de qualité/sécurité sur chaque pull request active, afin de prévenir les régressions avant fusion.
 
 ## TODO
+
 - Configurer un workflow GitHub Actions déclenché sur `pull_request` (opened, synchronize, reopened) et `push` sur les branches protégées.
 - Ajouter un job `lint` : installer Go toolchain, exécuter `go fmt` (vérification), `go vet` et, si disponible, `golangci-lint` avec configuration stricte.
 - Ajouter un job `test` : exécuter `go test ./...` avec couverture et uploader le rapport (utiliser Actions cache pour accélérer `go build` et modules).

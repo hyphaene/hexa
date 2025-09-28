@@ -28,10 +28,21 @@ func Initialize() {
 	viper.SetEnvPrefix("HEXA")
 	viper.AutomaticEnv()
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
-	// Merge configurations with project config taking precedence
-	viper.MergeConfigMap(rootConfig)
-	viper.MergeConfigMap(projectConfig)       // project override root
-	viper.MergeConfigMap(secretProjectConfig) // secret project override project
+	if rootConfig != nil {
+		if err := viper.MergeConfigMap(rootConfig); err != nil && env.Debug {
+			fmt.Println("Error merging root config:", err)
+		}
+	}
+	if projectConfig != nil {
+		if err := viper.MergeConfigMap(projectConfig); err != nil && env.Debug {
+			fmt.Println("Error merging project config:", err)
+		}
+	}
+	if secretProjectConfig != nil {
+		if err := viper.MergeConfigMap(secretProjectConfig); err != nil && env.Debug {
+			fmt.Println("Error merging secret project config:", err)
+		}
+	}
 
 	if env.Debug {
 		fmt.Println("Viper configuration initialized successfully")
