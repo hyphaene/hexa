@@ -2,7 +2,8 @@ package main
 
 import (
 	"github.com/hyphaene/hexa/cmd"
-	_ "github.com/hyphaene/hexa/cmd/env"
+	"github.com/hyphaene/hexa/internal/config"
+	_ "github.com/hyphaene/hexa/internal/env"
 
 	// Import commands to trigger their init() functions
 	_ "github.com/hyphaene/hexa/cmd/config"
@@ -19,6 +20,8 @@ var (
 )
 
 func main() {
+	// Initialize configuration before anything else
+	config.Initialize()
 	cmd.SetVersionInfo(version, commit, date)
 	cmd.Execute()
 }
