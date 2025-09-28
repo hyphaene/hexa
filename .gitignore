@@ -19,6 +19,7 @@ go.work
 
 # Build output
 hexa
+hexaa
 dist/
 
 # OS specific files
