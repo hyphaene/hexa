@@ -12,6 +12,8 @@
 - [x] pouvoir gérer un debug mode pour printer les logs ( via la config, ou via process.env equivalent )
 - [x] ajouter une commande pour créer le fichier de conf local et pousser le path dans le gitignore
 
+- [ ] utiliser/configurer un logger pour éviter le pattern if debug, on met en place un debug level
+
 par contre y'a plusieurs trucs qui vont pas : tes exemples avec echo sont pas bon, c'est
 pas comme ça que ça marchera dans le yml.\
  ensuite, il faut referencer hexa dans la commande, pas la version locale.\

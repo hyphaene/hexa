@@ -2,7 +2,9 @@ package config
 
 import (
 	_ "embed"
+	"errors"
 	"os"
+	"path/filepath"
 
 	"github.com/spf13/cobra"
 )
@@ -20,17 +22,22 @@ var SetupCmd = &cobra.Command{
 	Long:  `Setup and initialize hexa CLI.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// Setup logic here
-
-		_, userErr := os.Stat(os.ExpandEnv("$HOME/.hexa.yml"))
-		isUserConfigFileExists := userErr == nil
-
-		if isUserConfigFileExists {
-			println("User config file already exists at $HOME/.hexa.yml")
-		} else {
-			println("Creating user config file at $HOME/.hexa.yml")
-
-			os.WriteFile(os.ExpandEnv("$HOME/.hexa.yml"), []byte(template), 0644)
+		userHomeDir, _ := os.UserHomeDir()
+		filePath := filepath.Join(userHomeDir, ".hexa.yml")
+		_, err := os.Stat(filePath)
+		if err == nil {
+			println("User config file already exists at", filePath)
+			return
 		}
+		if errors.Is(err, os.ErrNotExist) {
+			println("Creating user config file at", filePath)
+			if writeErr := os.WriteFile(filePath, template, 0644); writeErr != nil {
+				println("Failed to create user config file:", writeErr.Error())
+				return
+			}
+			return
+		}
+		println("Error checking user config file:", err.Error())
 
 		// create the file from template
 		// write to ./hexa.local.yml

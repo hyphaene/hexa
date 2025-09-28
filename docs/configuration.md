@@ -83,34 +83,9 @@ user:
   email: "dev@company.com" # Local override if needed
 ```
 
-## Smart Template Expansion
+## Environment Overrides
 
-Hexa supports environment variable templates in configuration files:
-
-### Template Syntax
-
-- `${VARIABLE_NAME}` - Standard template syntax
-- `$VARIABLE_NAME` - Short syntax (also supported)
-
-### Smart Resolution Logic
-
-1. **Template Present**: If value contains `${VAR}` syntax
-
-   - Attempts to expand using environment variables
-   - If variable is undefined, template remains unchanged (debug info shown)
-
-2. **Direct Value**: If no template syntax
-
-   - Uses value as-is
-   - No environment variable lookup
-
-3. **Override Behavior**: Local files can override templates with direct values
-   - Config: `token: "${HEXA_JIRA_TOKEN}"` (template)
-   - Local: `token: "direct-secret-value"` (overrides template)
-
-## Environment Variables
-
-Hexa supports environment variables to handle sensitive data (tokens, passwords) and environment-specific values without exposing them in configuration files. This follows [Viper's environment variable support](https://github.com/spf13/viper#working-with-environment-variables).
+Hexa relies on Viper to combine configuration sources. YAML files can keep placeholders such as `${HEXA_JIRA_TOKEN}`; when you ask Viper for a value (e.g. `viper.GetString("jira.token")`), any exported environment variable with the matching `HEXA_` key takes precedence over the literal placeholder. If the environment variable is missing, the placeholder string is returned unchanged so you can detect missing secrets explicitly. This behaviour follows [Viper's environment variable support](https://github.com/spf13/viper#working-with-environment-variables).
 
 ### Automatic Binding
 
@@ -150,27 +125,9 @@ viper.BindEnv("user.email", "HEXA_USER_EMAIL")
 viper.BindEnv("custom.value", "MY_CUSTOM_VAR")
 ```
 
-## Security Features
+## Security Tips
 
-### Automatic Gitignore Protection
-
-Hexa automatically adds protection to `.gitignore`:
-
-```
-# Hexa local config
-.hexa.local.yml
-*.local.yml
-
-# Environment files
-.env
-.env.local
-```
-
-### File Patterns
-
-- **`.local.yml`** - Always gitignored for secrets
-- **`.yml`** - Shared configuration (committed)
-- **`.env`** - Environment variables (always gitignored)
+Ensure sensitive files stay out of version control by keeping a `.gitignore` entry for `.hexa.local.yml`, `*.local.yml`, `.env`, and similar artefacts. Project templates should include these patterns so contributors do not commit secrets by accident.
 
 ## Usage Examples
 

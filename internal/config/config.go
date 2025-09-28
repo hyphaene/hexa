@@ -23,8 +23,6 @@ func Initialize() {
 	projectConfig := getProjectConfig()
 	secretProjectConfig := getSecretProjectConfig()
 
-	// Merge secret project config last to override any previous settings
-
 	// Clear any existing config
 	viper.Reset()
 	viper.SetEnvPrefix("HEXA")
@@ -41,11 +39,11 @@ func Initialize() {
 }
 
 // GetMergedConfig returns the complete merged configuration for debugging
-func GetMergedConfig() map[string]interface{} {
+func GetMergedConfig() map[string]any {
 	return viper.AllSettings()
 }
 
-func getRootConfig() map[string]interface{} {
+func getRootConfig() map[string]any {
 	homeDir, _ := os.UserHomeDir()
 	configPath := filepath.Join(homeDir, ".hexa.yml")
 
@@ -56,7 +54,7 @@ func getRootConfig() map[string]interface{} {
 	return getConfig(configPath)
 }
 
-func getProjectConfig() map[string]interface{} {
+func getProjectConfig() map[string]any {
 	workingDir, err := os.Getwd()
 	if err != nil {
 		if env.Debug {
@@ -73,7 +71,7 @@ func getProjectConfig() map[string]interface{} {
 	return getConfig(configPath)
 }
 
-func getSecretProjectConfig() map[string]interface{} {
+func getSecretProjectConfig() map[string]any {
 	workingDir, err := os.Getwd()
 	if err != nil {
 		if env.Debug {
@@ -90,7 +88,7 @@ func getSecretProjectConfig() map[string]interface{} {
 	return getConfig(configPath)
 }
 
-func getConfig(configPath string) map[string]interface{} {
+func getConfig(configPath string) map[string]any {
 	// Create a new Viper instance for this config file
 	v := viper.New()
 	v.SetConfigFile(configPath)
