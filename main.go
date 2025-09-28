@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/hyphaene/hexa/cmd"
+	_ "github.com/hyphaene/hexa/cmd/env"
 
 	// Import commands to trigger their init() functions
 	_ "github.com/hyphaene/hexa/cmd/config"
@@ -18,7 +19,6 @@ var (
 )
 
 func main() {
-	// Pass version info to cmd package
 	cmd.SetVersionInfo(version, commit, date)
 	cmd.Execute()
 }
