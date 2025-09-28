@@ -26,10 +26,12 @@ var ConfigCmd = &cobra.Command{
 		projectConfig := getProjectConfig()
 		rootConfigYAML, _ := yaml.Marshal(rootConfig)
 		projectConfigYAML, _ := yaml.Marshal(projectConfig)
-
-		fmt.Println("Root Config:", string(rootConfigYAML))
-		fmt.Println("Project Config:", string(projectConfigYAML))
-
+		fmt.Println("---")
+		fmt.Println("Root Config:")
+		fmt.Println(string(rootConfigYAML))
+		fmt.Println("---")
+		fmt.Println("Project Config:")
+		fmt.Println(string(projectConfigYAML))
 	},
 }
 
