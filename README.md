@@ -16,6 +16,15 @@ brew install hexa
 # Verify installation with both commands
 hexa --help
 hw --help   # Short alias
+
+```
+
+### Shell Completion
+
+```bash
+hexa completion install
+echo 'compdef _hexa hw' >> ~/.zshrc  # Enable completion for the hw alias
+source ~/.zshrc
 ```
 
 ### Manual Installation
