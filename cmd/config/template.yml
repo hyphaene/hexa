@@ -1,12 +1,12 @@
 jira:
-  url: "https://your-jira-instance.com"
+  url: https://your-jira-instance.com
   token: "${HEXA_JIRA_TOKEN}" # Set your JIRA_TOKEN environment variable
   default_project: "YOUR_PROJECT"
   timeout: 30
   retry: 3
 
 git:
-  default_branch: "main"
+  default_branch: main
   worktree_base: "${HOME}/worktrees"
   auto_push: false
 

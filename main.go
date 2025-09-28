@@ -1,6 +1,9 @@
 package main
 
 import (
+	"fmt"
+	"os"
+
 	"github.com/hyphaene/hexa/cmd"
 	"github.com/hyphaene/hexa/internal/config"
 	_ "github.com/hyphaene/hexa/internal/env"
@@ -23,5 +26,9 @@ func main() {
 	// Initialize configuration before anything else
 	config.Initialize()
 	cmd.SetVersionInfo(version, commit, date)
-	cmd.Execute()
+
+	if err := cmd.Execute(); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
 }

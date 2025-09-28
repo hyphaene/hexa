@@ -5,9 +5,7 @@ import (
 )
 
 var (
-	AppVersion  string
-	buildCommit string
-	buildDate   string
+	AppVersion string
 
 	RootCmd = &cobra.Command{
 		Use:   "hexa",
@@ -21,8 +19,6 @@ organized around functional domains (JIRA, GIT, SETUP, AI).`,
 // SetVersionInfo sets the version information injected by the build system
 func SetVersionInfo(version, commit, date string) {
 	AppVersion = version
-	buildCommit = commit
-	buildDate = date
 }
 
 // Execute executes the root command.

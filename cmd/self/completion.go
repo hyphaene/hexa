@@ -20,7 +20,9 @@ func init() {
 		Short: "Generate bash completion",
 		Long:  "Generate bash completion script for hexa CLI.",
 		Run: func(cmd *cobra.Command, args []string) {
-			cmd.Root().GenBashCompletion(os.Stdout)
+			if err := cmd.Root().GenBashCompletion(os.Stdout); err != nil {
+				fmt.Fprintln(os.Stderr, "Error generating bash completion:", err)
+			}
 		},
 	})
 
@@ -29,7 +31,9 @@ func init() {
 		Short: "Generate zsh completion",
 		Long:  "Generate zsh completion script for hexa CLI.",
 		Run: func(cmd *cobra.Command, args []string) {
-			cmd.Root().GenZshCompletion(os.Stdout)
+			if err := cmd.Root().GenZshCompletion(os.Stdout); err != nil {
+				fmt.Fprintln(os.Stderr, "Error generating zsh completion:", err)
+			}
 		},
 	})
 
@@ -38,7 +42,9 @@ func init() {
 		Short: "Generate fish completion",
 		Long:  "Generate fish completion script for hexa CLI.",
 		Run: func(cmd *cobra.Command, args []string) {
-			cmd.Root().GenFishCompletion(os.Stdout, true)
+			if err := cmd.Root().GenFishCompletion(os.Stdout, true); err != nil {
+				fmt.Fprintln(os.Stderr, "Error generating fish completion:", err)
+			}
 		},
 	})
 }
@@ -89,7 +95,9 @@ This command will:
 		execCommand("sudo", "cp", tempCompletionFile, completionPath)
 
 		// Clean up temp file
-		os.Remove(tempCompletionFile)
+		if err := os.Remove(tempCompletionFile); err != nil {
+			fmt.Printf("Error removing temp completion file: %v\n", err)
+		}
 
 		fmt.Println("\n✅ Zsh completion installed successfully!")
 		fmt.Println("\nTo activate completion, restart your shell or run:")
