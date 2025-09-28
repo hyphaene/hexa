@@ -23,8 +23,6 @@ var SetupCmd = &cobra.Command{
 
 		_, userErr := os.Stat(os.ExpandEnv("$HOME/.hexa.yml"))
 		isUserConfigFileExists := userErr == nil
-		_, localErr := os.Stat(".hexa.local.yml")
-		isLocalConfigFileExists := localErr == nil
 
 		if isUserConfigFileExists {
 			println("User config file already exists at $HOME/.hexa.yml")
@@ -34,11 +32,6 @@ var SetupCmd = &cobra.Command{
 			os.WriteFile(os.ExpandEnv("$HOME/.hexa.yml"), []byte(template), 0644)
 		}
 
-		if isLocalConfigFileExists {
-			println("Local config file already exists at ./hexa.local.yml")
-		} else {
-			println("Creating local config file at ./hexa.local.yml")
-		}
 		// create the file from template
 		// write to ./hexa.local.yml
 		// check if .gitignore exists
