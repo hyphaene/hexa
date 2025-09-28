@@ -240,22 +240,111 @@ hexa/
 - **Embedding** : `//go:embed` (scripts dans binaire)
 - **Execution** : os/exec (scripts temporaires)
 
-## Configuration centralisée
+## Configuration centralisée multi-niveaux
+
+### Hiérarchie de configuration (spécifique override global)
+
+Le système de configuration utilise **Viper avec MergeConfig()** pour un support multi-niveaux natif :
+
+```
+1. ~/.hexa.yml              (global user)
+2. ~/Code/project/.hexa.yml (project-specific) ← override
+3. ./hexa.yml               (current directory) ← override
+4. ENV variables            (runtime) ← override
+5. Command line flags       (runtime) ← override
+```
+
+**Ordre de précédence** : Plus spécifique = plus prioritaire.
+
+### Implémentation Viper
+
+```go
+// Lecture et merge automatique des configs
+func loadConfig() error {
+    viper.SetConfigType("yaml")
+
+    // 1. Base : global config (~/.hexa.yml)
+    if homeConfig, err := os.ReadFile(filepath.Join(home, ".hexa.yml")); err == nil {
+        viper.ReadConfig(bytes.NewBuffer(homeConfig))
+    }
+
+    // 2. Override : project config (remontée vers ~/)
+    projectPath := findProjectConfig() // cherche .hexa.yml jusqu'à ~/
+    if projectConfig, err := os.ReadFile(projectPath); err == nil {
+        viper.MergeConfig(bytes.NewBuffer(projectConfig)) // ← Merge avec précédence
+    }
+
+    // 3. Override : current dir (./hexa.yml)
+    if currentConfig, err := os.ReadFile("./hexa.yml"); err == nil {
+        viper.MergeConfig(bytes.NewBuffer(currentConfig))
+    }
+
+    // 4. ENV variables automatiques (HEXA_JIRA_URL, etc.)
+    viper.AutomaticEnv()
+    viper.SetEnvPrefix("HEXA")
+    viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+
+    return nil
+}
+```
+
+### Structure YAML supportée
 
 ```yaml
-# ~/.hexa.yaml
+# ~/.hexa.yml (global)
 jira:
-  url: "https://jira.xxxx.com"
+  url: "https://jira.company.com"
   token: "${JIRA_PAT}"
-  default_project: "TEAM"
+  default_project: "GLOBAL"
 
 git:
-  default_branch: "develop"
-  worktree_base: "./worktrees"
+  default_branch: "main"
+  worktree_base: "~/worktrees"
 
-slack:
-  webhook_url: "${SLACK_WEBHOOK_URL}"
+user:
+  me: "maximilien.garenne@company.com"
+```
 
+```yaml
+# ~/Code/specific-project/.hexa.yml (project override)
+jira:
+  default_project: "PROJ"  # Override global
+  # url héritée de global
+
+git:
+  default_branch: "develop"  # Override global
+  worktree_base: "./local-worktrees"  # Override global
+
+# user héritée de global
+
+# Config spécifique au projet
+database:
+  host: "localhost"
+  port: 5432
+```
+
+### Recherche de configuration projet
+
+```go
+// Remonte depuis PWD jusqu'à home pour trouver .hexa.yml
+func findProjectConfig() string {
+    dir, _ := os.Getwd()
+    home, _ := os.UserHomeDir()
+
+    for dir != home && dir != "/" {
+        configPath := filepath.Join(dir, ".hexa.yml")
+        if _, err := os.Stat(configPath); err == nil {
+            return configPath
+        }
+        dir = filepath.Dir(dir)
+    }
+    return ""
+}
+```
+
+### Aliases et workflows
+
+```yaml
 aliases:
   # Shortcuts quotidiens
   overview: "jira sprint overview --user me"
@@ -266,9 +355,15 @@ aliases:
   # Workflows composés
   daily: ["jira sprint overview --user me", "git repo status"]
   wip: "jira ticket move {ticket} --status 'In Progress' && jira ticket comment {ticket} 'Work in progress'"
+```
 
-user:
-  me: "maximilien.garenne@somecompany.com"
+### Support des variables d'environnement
+
+```bash
+# Override à l'exécution
+HEXA_JIRA_URL="https://jira.dev.com" hexa jira sprint overview
+export HEXA_GIT_DEFAULT_BRANCH="feature-branch"
+hexa git repo status
 ```
 
 ## Smart Completion & Help (Phase 1)

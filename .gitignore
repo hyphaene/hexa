@@ -19,6 +19,7 @@ go.work
 
 # Build output
 hexa
+hexaa
 dist/
 
 # OS specific files
@@ -36,3 +37,7 @@ Thumbs.db
 .env.local
 
 gitignored
+
+.hexa.yml
+.hexa.local.yml
+.env
