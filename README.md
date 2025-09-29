@@ -93,6 +93,10 @@ go fmt ./...
 
 # Tidy dependencies
 go mod tidy
+
+# run other tests ( golangci-lint ) // iso CI
+golangci-lint run
+
 ```
 
 ## Homebrew Tap
