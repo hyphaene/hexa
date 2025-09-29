@@ -1,0 +1,26 @@
+{
+  "name": "hexa",
+  "version": "1.0.0",
+  "description": "Hexactitude CLI - Unified automation and scripting toolkit",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "build": " go build -o hexa",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "jira:sprint": "npm run build; ./hexa jira ticket get"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hyphaene/hexa.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/hyphaene/hexa/issues"
+  },
+  "homepage": "https://github.com/hyphaene/hexa#readme"
+}
