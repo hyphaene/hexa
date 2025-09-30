@@ -9,7 +9,8 @@
   "scripts": {
     "build": " go build -o hexa",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "jira:sprint": "npm run build; ./hexa jira ticket get"
+    "jira:sprint": "npm run build; ./hexa jira ticket get",
+    "check": "golangci-lint run"
   },
   "repository": {
     "type": "git",

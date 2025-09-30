@@ -68,8 +68,11 @@ func GetCurrentSprintId() (int, error) {
 	if err != nil {
 		log.Fatalln(err)
 	}
-
-	defer response.Body.Close()
+	defer func() {
+		if cerr := response.Body.Close(); cerr != nil {
+			log.Printf("closing response body: %v", cerr)
+		}
+	}()
 
 	if response.StatusCode != http.StatusOK {
 		return 0, fmt.Errorf("failed to fetch sprints, status code: %d", response.StatusCode)

@@ -29,8 +29,14 @@ Example:
 func init() {
 	initCmd.Flags().StringVar(&boardName, "board-name", "", "Name of the Jira board to resolve (required)")
 	initCmd.Flags().StringVar(&configPath, "config-path", "", "Path to the config file to update (required)")
-	initCmd.MarkFlagRequired("board-name")
-	initCmd.MarkFlagRequired("config-path")
+	err := initCmd.MarkFlagRequired("board-name")
+	if err != nil {
+		fmt.Println("marking board-name flag as required: %w", err)
+	}
+	err = initCmd.MarkFlagRequired("config-path")
+	if err != nil {
+		fmt.Println("marking config-path flag as required: %w", err)
+	}
 
 	JiraCmd.AddCommand(initCmd)
 }

@@ -97,7 +97,10 @@ func setNestedFieldRecursive(mappingNode *yaml.Node, keys []string, value any) e
 			if isLastKey {
 				// Dernière clé: remplacer la valeur
 				newValueNode := &yaml.Node{}
-				newValueNode.Encode(value)
+
+				if err := newValueNode.Encode(value); err != nil {
+					return fmt.Errorf("encoding value: %w", err)
+				}
 				mappingNode.Content[i+1] = newValueNode
 				return nil
 			} else {
@@ -120,7 +123,9 @@ func setNestedFieldRecursive(mappingNode *yaml.Node, keys []string, value any) e
 			Value: currentKey,
 		}
 		valueNode := &yaml.Node{}
-		valueNode.Encode(value)
+		if err := valueNode.Encode(value); err != nil {
+			return fmt.Errorf("encoding value: %w", err)
+		}
 		mappingNode.Content = append(mappingNode.Content, keyNode, valueNode)
 		return nil
 	} else {
