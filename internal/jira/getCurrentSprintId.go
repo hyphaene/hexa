@@ -36,9 +36,24 @@ type Sprint struct {
 func GetCurrentSprintId() (int, error) {
 	jiraToken := viper.GetString("jira.token")
 
-	const SEE_SOP_BOARD_ID = "14242"
+	// Priorité 1: utiliser jira.boardId si présent (évite appel API)
+	var boardID int
+	if viper.IsSet("jira.boardId") {
+		boardID = viper.GetInt("jira.boardId")
+	} else {
+		// Priorité 2: résoudre via jira.boardName (fallback)
+		boardName := viper.GetString("jira.boardName")
+		if boardName == "" {
+			return 0, fmt.Errorf("neither jira.boardId nor jira.boardName is configured. Run 'hexa jira init --board-name \"YOUR_BOARD\" --config-path .hexa.local.yml' to initialize")
+		}
+		var err error
+		boardID, err = GetBoardIdFromName(boardName)
+		if err != nil {
+			return 0, fmt.Errorf("resolving board ID from name '%s': %w. Consider running 'hexa jira init' to cache the board ID", boardName, err)
+		}
+	}
 
-	url := viper.GetString("jira.url") + "/rest/agile/1.0/board/" + SEE_SOP_BOARD_ID + "/sprint?state=active"
+	url := fmt.Sprintf("%s/rest/agile/1.0/board/%d/sprint?state=active", viper.GetString("jira.url"), boardID)
 
 	resp, err := http.NewRequest("GET", url, nil)
 	if err != nil {

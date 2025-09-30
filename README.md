@@ -66,6 +66,57 @@ hexa config
 - **Auto .env loading**: Place `.env` file in working directory (loaded with `godotenv`)
 - **Security**: Keep sensitive data in env vars or gitignored files such as `.hexa.local.yml`
 
+## Commands
+
+### Jira Commands
+
+The Jira commands follow a **setup-then-use** workflow to optimize API calls:
+
+#### 1️⃣ Initialize Configuration (run once)
+
+```bash
+hexa jira init --board-name "YOUR_BOARD_NAME" --config-path .hexa.local.yml
+```
+
+This command:
+- Resolves the board ID from the board name via Jira API
+- Caches the board ID in your local config file
+- Eliminates repeated API calls on subsequent commands
+
+**Example:**
+```bash
+hexa jira init --board-name "SEE x SOP" --config-path .hexa.local.yml
+# Output:
+# 🔍 Resolving board ID for 'SEE x SOP'...
+# ✅ Board found: 'SEE x SOP' (ID: 1234)
+# ✅ Configuration saved to: /path/to/.hexa.local.yml
+#    jira:
+#      boardId: 1234
+```
+
+#### 2️⃣ Use Jira Commands
+
+Once initialized, you can use other Jira commands without repeated API lookups:
+
+```bash
+# Get current active sprint ID
+hexa jira get-current-sprint-id
+```
+
+**Why this order matters:**
+- `init` caches the board ID → faster subsequent commands
+- Commands like `get-current-sprint-id` use the cached board ID
+- If board ID is missing, commands will fall back to resolving via board name (slower)
+
+**Recommended workflow:**
+```bash
+# 1. Setup (once per project)
+hexa jira init --board-name "YOUR_BOARD" --config-path .hexa.local.yml
+
+# 2. Use (as many times as needed)
+hexa jira get-current-sprint-id
+```
+
 ## Development
 
 ### Local Build
