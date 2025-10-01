@@ -156,27 +156,27 @@ Single project structure (CLI tool):
 
 ### Models & Structs
 
-- [ ] **T013** [P] Create Ticket, Fields, Status, Assignee, Priority structs
+- [x] **T013** [P] Create Ticket, Fields, Status, Assignee, Priority structs
   - File: `internal/jira/ticket.go`
   - Define structs per `data-model.md` section 1
   - Add JSON tags for API unmarshaling
   - Use pointers for optional fields (`*Assignee`, `*Priority`)
   - **Validates**: T004 contract test (JSON unmarshaling)
 
-- [ ] **T014** [P] Create CacheEntry struct with TTL methods
+- [x] **T014** [P] Create CacheEntry struct with TTL methods
   - File: `internal/cache/entry.go`
   - Define struct per `data-model.md` section 2
   - Implement `IsExpired() bool` method (5-minute TTL check)
   - Implement `Age() time.Duration` method
   - **Validates**: T008, T009 integration tests (cache logic)
 
-- [ ] **T015** [P] Create UserProfile struct
+- [x] **T015** [P] Create UserProfile struct
   - File: `internal/jira/user.go`
   - Define struct per `data-model.md` section 3
   - Add JSON tags for `/rest/api/3/myself` response
   - **Validates**: T005 contract test, T010 integration test
 
-- [ ] **T016** [P] Create status key mapping
+- [x] **T016** [P] Create status key mapping
   - File: `internal/jira/status_map.go`
   - Define `StatusMap` variable per `data-model.md` section 5
   - Implement `MapStatusKey(cliKey string) (string, error)` function
@@ -185,7 +185,7 @@ Single project structure (CLI tool):
 
 ### Cache Manager
 
-- [ ] **T017** Cache file read/write operations
+- [x] **T017** Cache file read/write operations
   - File: `internal/cache/manager.go`
   - Implement `ReadCache(sprintID int) (*CacheEntry, error)` function
   - Implement `WriteCache(entry *CacheEntry) error` function
@@ -194,7 +194,7 @@ Single project structure (CLI tool):
   - Handle corrupted cache files (return error, caller refreshes)
   - **Validates**: T007, T008, T009, T012 integration tests
 
-- [ ] **T018** Cache TTL validation logic
+- [x] **T018** Cache TTL validation logic
   - File: `internal/cache/manager.go` (add function)
   - Implement `ShouldRefresh(entry *CacheEntry, noCache bool) bool` function
   - Returns true if: cache expired OR noCache flag set OR cache file missing
@@ -202,14 +202,14 @@ Single project structure (CLI tool):
 
 ### User Profile Fetch
 
-- [ ] **T019** Fetch current user profile from Jira API
+- [x] **T019** Fetch current user profile from Jira API
   - File: `internal/jira/user.go` (add function)
   - Implement `FetchCurrentUser() (*UserProfile, error)` function
   - Call `/rest/api/3/myself` with Bearer token from `viper.GetString("jira.token")`
   - Unmarshal response into `UserProfile` struct
   - **Validates**: T005 contract test, T010 integration test
 
-- [ ] **T020** Persist user email to Viper config
+- [x] **T020** Persist user email to Viper config
   - File: `internal/jira/user.go` (add function)
   - Implement `SaveUserEmail(email string, level string) error` function
   - Use `viper.Set("jira.userEmail", email)` + `viper.WriteConfig()`
@@ -218,7 +218,7 @@ Single project structure (CLI tool):
 
 ### Ticket Fetch & Filter Logic
 
-- [ ] **T021** Fetch sprint tickets from Jira API with pagination
+- [x] **T021** Fetch sprint tickets from Jira API with pagination
   - File: `internal/jira/tickets.go`
   - Implement `FetchSprintTickets(sprintID int) ([]Ticket, int, error)` function
   - Call `/rest/agile/1.0/sprint/{sprintId}/issue?startAt=0&maxResults=100`
@@ -226,13 +226,13 @@ Single project structure (CLI tool):
   - Return tickets array + total count
   - **Validates**: T004 contract test, T007 integration test
 
-- [ ] **T022** Filter tickets by status
+- [x] **T022** Filter tickets by status
   - File: `internal/jira/tickets.go` (add function)
   - Implement `FilterByStatus(tickets []Ticket, statusName string) []Ticket` function
   - Compare `ticket.Fields.Status.Name` with exact Jira status name
   - **Validates**: T007 integration test (status filtering)
 
-- [ ] **T023** Filter tickets by assignee (me, unassigned, all)
+- [x] **T023** Filter tickets by assignee (me, unassigned, all)
   - File: `internal/jira/tickets.go` (add function)
   - Implement `FilterByAssignee(tickets []Ticket, filter string, userEmail string) []Ticket` function
   - "me": match `ticket.Fields.Assignee.EmailAddress == userEmail`
@@ -242,13 +242,14 @@ Single project structure (CLI tool):
 
 ### CLI Command
 
-- [ ] **T024** Create `hexa jira fetch` Cobra subcommand
-  - File: `cmd/jira/fetch/fetch.go`
+- [x] **T024** Create `hexa jira sprint fetch` Cobra subcommand
+  - Files: `cmd/jira/sprint/sprint.go`, `cmd/jira/sprint/fetch.go`
+  - Define Sprint subcommand root + fetch child command
   - Define Cobra command with:
     - Use: `fetch <status>`
     - Args: Exactly 1 arg (status key)
     - Flags: `--filter` (me|unassigned|all, default: all), `--no-cache` (bool, default: false)
-  - Add command to `cmd/jira/jira.go` via `init()` function
+  - Add sprint command to `cmd/jira/jira.go` via `init()` function
   - Implement RunE function:
     1. Validate status key via `MapStatusKey(args[0])`
     2. Get current sprint ID via existing `jira.GetCurrentSprintId()`
@@ -260,12 +261,19 @@ Single project structure (CLI tool):
     8. Format output (see T025)
   - **Validates**: All integration tests T007-T012
 
+- [x] **T024b** Create `hexa jira sprint pulse` command for multi-status overview
+  - File: `cmd/jira/sprint/pulse.go`
+  - Single API call fetching all sprint tickets once
+  - Filter in-memory for: "To Do" (me), "In Progress" (me), "DEPLOY IN UAT" (all), "Blocked" (all)
+  - Display grouped output with counts per status
+  - **Use case**: Replace 4 sequential bash script calls with 1 optimized command
+
 ---
 
 ## Phase 3.4: Integration
 
-- [ ] **T025** Output formatting with cache statistics
-  - File: `cmd/jira/fetch/fetch.go` (add function)
+- [x] **T025** Output formatting with cache statistics
+  - File: `cmd/jira/sprint/fetch.go` (add function)
   - Implement `FormatOutput(tickets []Ticket, cacheAge time.Duration, total int, filterStatus string, filterAssignee string)` function
   - Display format per `quickstart.md` examples:
     ```
@@ -280,8 +288,8 @@ Single project structure (CLI tool):
     ```
   - **Validates**: All integration tests (output format)
 
-- [ ] **T026** Error handling and user-friendly messages
-  - File: `cmd/jira/fetch/fetch.go` (enhance existing error handling)
+- [x] **T026** Error handling and user-friendly messages
+  - File: `cmd/jira/sprint/fetch.go` (enhance existing error handling)
   - Invalid status key: Show valid keys list (use `ValidStatusKeys()`)
   - Authentication failure (401): Show token config hint
   - Network error: Show URL being accessed, suggest config check

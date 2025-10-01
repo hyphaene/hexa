@@ -2,7 +2,7 @@ package jira
 
 // Ticket represents a single Jira issue with relevant fields for display and filtering
 type Ticket struct {
-	Key    string `json:"key"`    // e.g., "PROJ-123"
+	Key    string `json:"key"` // e.g., "PROJ-123"
 	Fields Fields `json:"fields"`
 }
 
