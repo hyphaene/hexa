@@ -1,0 +1,280 @@
+openapi: 3.0.3
+info:
+  title: Jira REST API Subset (for hexa jira fetch)
+  description: Contract definition for Jira API endpoints used by fetch command
+  version: 1.0.0
+
+servers:
+  - url: https://your-domain.atlassian.net
+    description: Jira Cloud instance
+
+security:
+  - bearerAuth: []
+
+paths:
+  /rest/agile/1.0/sprint/{sprintId}/issue:
+    get:
+      summary: Get issues for a sprint
+      operationId: getSprintIssues
+      parameters:
+        - name: sprintId
+          in: path
+          required: true
+          schema:
+            type: integer
+            example: 123
+        - name: startAt
+          in: query
+          schema:
+            type: integer
+            default: 0
+            example: 0
+        - name: maxResults
+          in: query
+          schema:
+            type: integer
+            default: 50
+            maximum: 100
+            example: 100
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SprintIssuesResponse'
+        '401':
+          description: Unauthorized (invalid or missing bearer token)
+        '404':
+          description: Sprint not found
+
+  /rest/api/3/myself:
+    get:
+      summary: Get current user profile
+      operationId: getCurrentUser
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+        '401':
+          description: Unauthorized (invalid or missing bearer token)
+
+  /rest/agile/1.0/board/{boardId}/sprint:
+    get:
+      summary: Get sprints for a board (filtered by state)
+      operationId: getBoardSprints
+      parameters:
+        - name: boardId
+          in: path
+          required: true
+          schema:
+            type: integer
+            example: 456
+        - name: state
+          in: query
+          schema:
+            type: string
+            enum: [active, future, closed]
+            example: active
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SprintListResponse'
+        '401':
+          description: Unauthorized
+        '404':
+          description: Board not found
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: PAT
+
+  schemas:
+    SprintIssuesResponse:
+      type: object
+      required:
+        - maxResults
+        - startAt
+        - total
+        - issues
+      properties:
+        maxResults:
+          type: integer
+          description: Maximum results returned in this page
+          example: 100
+        startAt:
+          type: integer
+          description: Starting index of this page
+          example: 0
+        total:
+          type: integer
+          description: Total number of issues in sprint
+          example: 47
+        isLast:
+          type: boolean
+          description: Whether this is the last page
+          example: true
+        issues:
+          type: array
+          items:
+            $ref: '#/components/schemas/Issue'
+
+    Issue:
+      type: object
+      required:
+        - key
+        - fields
+      properties:
+        key:
+          type: string
+          description: Unique issue key (e.g., PROJ-123)
+          example: "PROJ-123"
+        fields:
+          $ref: '#/components/schemas/IssueFields'
+
+    IssueFields:
+      type: object
+      required:
+        - summary
+        - status
+      properties:
+        summary:
+          type: string
+          description: Issue summary/title
+          example: "Implement user authentication"
+        status:
+          $ref: '#/components/schemas/Status'
+        assignee:
+          allOf:
+            - $ref: '#/components/schemas/User'
+          nullable: true
+          description: User assigned to this issue (null if unassigned)
+        priority:
+          allOf:
+            - $ref: '#/components/schemas/Priority'
+          nullable: true
+          description: Issue priority (null if not set)
+
+    Status:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          description: Status display name (exact match required for filtering)
+          example: "In Progress"
+
+    User:
+      type: object
+      required:
+        - displayName
+        - emailAddress
+      properties:
+        displayName:
+          type: string
+          description: User's full name
+          example: "John Doe"
+        emailAddress:
+          type: string
+          format: email
+          description: User's email address
+          example: "john.doe@example.com"
+
+    Priority:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          description: Priority level name
+          example: "High"
+          enum: [Highest, High, Medium, Low, Lowest]
+
+    UserProfile:
+      type: object
+      required:
+        - accountId
+        - emailAddress
+        - displayName
+      properties:
+        accountId:
+          type: string
+          description: Unique Jira account ID
+          example: "5b10ac8d82e05b22cc7d4ef5"
+        emailAddress:
+          type: string
+          format: email
+          description: User's primary email address
+          example: "user@example.com"
+        displayName:
+          type: string
+          description: User's full display name
+          example: "Jane Smith"
+
+    SprintListResponse:
+      type: object
+      required:
+        - maxResults
+        - startAt
+        - isLast
+        - values
+      properties:
+        maxResults:
+          type: integer
+          example: 50
+        startAt:
+          type: integer
+          example: 0
+        isLast:
+          type: boolean
+          example: true
+        values:
+          type: array
+          items:
+            $ref: '#/components/schemas/Sprint'
+
+    Sprint:
+      type: object
+      required:
+        - id
+        - state
+        - name
+      properties:
+        id:
+          type: integer
+          description: Unique sprint ID
+          example: 123
+        state:
+          type: string
+          enum: [active, future, closed]
+          example: "active"
+        name:
+          type: string
+          description: Sprint name
+          example: "Sprint 42"
+        startDate:
+          type: string
+          format: date-time
+          example: "2025-09-15T08:00:00.000Z"
+        endDate:
+          type: string
+          format: date-time
+          example: "2025-09-29T17:00:00.000Z"
+        originBoardId:
+          type: integer
+          example: 456
+        goal:
+          type: string
+          description: Sprint goal description
+          example: "Complete user authentication feature"

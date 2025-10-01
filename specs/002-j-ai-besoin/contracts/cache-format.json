@@ -1,0 +1,180 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/hyphaene/hexa/schemas/cache-entry.json",
+  "title": "Sprint Ticket Cache Entry",
+  "description": "JSON schema for sprint ticket cache files stored at ~/.hexa/cache/sprint_{id}.json",
+  "type": "object",
+  "required": ["sprintId", "cachedAt", "ttlSeconds", "total", "issues"],
+  "properties": {
+    "sprintId": {
+      "type": "integer",
+      "description": "Jira sprint ID this cache represents",
+      "minimum": 1,
+      "example": 123
+    },
+    "cachedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "RFC3339 timestamp when cache was created",
+      "example": "2025-10-01T14:30:00Z"
+    },
+    "ttlSeconds": {
+      "type": "integer",
+      "description": "Time-to-live in seconds (default: 300 = 5 minutes)",
+      "minimum": 1,
+      "default": 300,
+      "example": 300
+    },
+    "total": {
+      "type": "integer",
+      "description": "Total number of tickets in sprint",
+      "minimum": 0,
+      "example": 47
+    },
+    "issues": {
+      "type": "array",
+      "description": "Array of Jira issues (tickets) from sprint",
+      "items": {
+        "$ref": "#/definitions/Issue"
+      }
+    }
+  },
+  "definitions": {
+    "Issue": {
+      "type": "object",
+      "required": ["key", "fields"],
+      "properties": {
+        "key": {
+          "type": "string",
+          "description": "Unique Jira issue key",
+          "pattern": "^[A-Z]+-\\d+$",
+          "example": "PROJ-123"
+        },
+        "fields": {
+          "$ref": "#/definitions/Fields"
+        }
+      }
+    },
+    "Fields": {
+      "type": "object",
+      "required": ["summary", "status"],
+      "properties": {
+        "summary": {
+          "type": "string",
+          "description": "Issue summary/title",
+          "minLength": 1,
+          "example": "Implement user authentication"
+        },
+        "status": {
+          "$ref": "#/definitions/Status"
+        },
+        "assignee": {
+          "oneOf": [
+            { "$ref": "#/definitions/Assignee" },
+            { "type": "null" }
+          ],
+          "description": "User assigned to issue (null if unassigned)"
+        },
+        "priority": {
+          "oneOf": [
+            { "$ref": "#/definitions/Priority" },
+            { "type": "null" }
+          ],
+          "description": "Issue priority (null if not set)"
+        }
+      }
+    },
+    "Status": {
+      "type": "object",
+      "required": ["name"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Status display name (case-sensitive)",
+          "enum": [
+            "To Do",
+            "In Progress",
+            "To test",
+            "UAT",
+            "DEPLOY IN UAT",
+            "To deploy",
+            "Blocked",
+            "Prep",
+            "New",
+            "Closed",
+            "Archived"
+          ],
+          "example": "In Progress"
+        }
+      }
+    },
+    "Assignee": {
+      "type": "object",
+      "required": ["displayName", "emailAddress"],
+      "properties": {
+        "displayName": {
+          "type": "string",
+          "description": "User's full name",
+          "example": "John Doe"
+        },
+        "emailAddress": {
+          "type": "string",
+          "format": "email",
+          "description": "User's email address",
+          "example": "john.doe@example.com"
+        }
+      }
+    },
+    "Priority": {
+      "type": "object",
+      "required": ["name"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Priority level name",
+          "enum": ["Highest", "High", "Medium", "Low", "Lowest"],
+          "example": "High"
+        }
+      }
+    }
+  },
+  "examples": [
+    {
+      "sprintId": 123,
+      "cachedAt": "2025-10-01T14:30:00Z",
+      "ttlSeconds": 300,
+      "total": 2,
+      "issues": [
+        {
+          "key": "PROJ-123",
+          "fields": {
+            "summary": "Implement user authentication",
+            "status": {
+              "name": "In Progress"
+            },
+            "assignee": {
+              "displayName": "John Doe",
+              "emailAddress": "john.doe@example.com"
+            },
+            "priority": {
+              "name": "High"
+            }
+          }
+        },
+        {
+          "key": "PROJ-124",
+          "fields": {
+            "summary": "Fix login page styling",
+            "status": {
+              "name": "To test"
+            },
+            "assignee": null,
+            "priority": {
+              "name": "Medium"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
