@@ -28,38 +28,48 @@ go mod download
 
 ## Build and Test Commands
 
+⚠️ **IMPORTANT**: All standard commands (lint, format, build, test) MUST be defined as npm scripts in `package.json`.
+- **ALWAYS** suggest adding missing commands to `package.json` scripts
+- **PREFER** `npm run <script>` over direct Go commands for consistency
+- **STANDARD** scripts to maintain: `lint`, `format`, `build`, `test`, `test:verbose`, `test:coverage`
+
 ```bash
-# Build
+# Preferred (via package.json scripts)
+npm run build              # go build -o hexa
+npm run test               # go test ./...
+npm run test:verbose       # go test -v ./...
+npm run test:coverage      # go test -cover ./...
+npm run lint               # golangci-lint run
+npm run format             # go fmt ./...
+
+# Direct commands (fallback only)
 go build                    # Simple build
 go build -o hexa           # Named binary
-
-# Run
 go run main.go [args]      # Direct run
 ./hexa --help              # Test binary
 ./hexa version             # Test version command
-
-# Test
 go test ./...              # Run all tests
-go test -v ./...           # Verbose tests
-go test -cover ./...       # With coverage
 ```
 
 ## Quality Checks
 
 ```bash
-# Go toolchain
+# Preferred (via package.json scripts)
+npm run format             # go fmt ./...
+npm run lint               # golangci-lint run (if configured)
+npm run clean              # go mod tidy
+
+# Direct commands (fallback only)
 go fmt ./...               # Format code
 go vet ./...               # Static analysis
 go mod tidy               # Clean dependencies
-
-# Optional (if available)
-golangci-lint run         # Advanced linting
+golangci-lint run         # Advanced linting (if available)
 ```
 
 ## Testing Instructions
 
-- Always run `go test ./...` before commits
-- Verify build works: `go build -o hexa && ./hexa --help`
+- Always run `npm run test` (or `go test ./...`) before commits
+- Verify build works: `npm run build && ./hexa --help`
 - Test GoReleaser locally: `goreleaser release --snapshot --rm-dist`
 
 ## Release Process
