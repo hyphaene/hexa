@@ -44,19 +44,19 @@ Single project structure (CLI tool):
 
 ## Phase 3.1: Setup
 
-- [ ] **T001** Create directory structure for fetch command
+- [x] **T001** Create directory structure for fetch command
   - Create `cmd/jira/fetch/` directory
   - Create `internal/cache/` directory
   - Create `tests/contract/`, `tests/integration/`, `tests/unit/` directories if missing
   - **File impact**: Filesystem only (no code files yet)
 
-- [ ] **T002** Verify Go dependencies in `go.mod`
+- [x] **T002** Verify Go dependencies in `go.mod`
   - Confirm `github.com/spf13/cobra` present
   - Confirm `github.com/spf13/viper` present
   - Run `go mod tidy` to ensure clean state
   - **File impact**: `go.mod`, `go.sum`
 
-- [ ] **T003** [P] Configure golangci-lint for project
+- [x] **T003** [P] Configure golangci-lint for project
   - Create `.golangci.yml` with standard Go linting rules if missing
   - Verify `golangci-lint run` passes on existing code
   - **File impact**: `.golangci.yml` (if new)
