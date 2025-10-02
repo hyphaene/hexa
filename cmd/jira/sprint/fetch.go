@@ -207,7 +207,9 @@ func runFetch(cmd *cobra.Command, args []string) error {
 		userEmail := viper.GetString("jira.userEmail")
 		if userEmail == "" {
 			// Fetch user profile
-			_, _ = fmt.Fprintf(cmd.OutOrStdout(), "🔄 Fetching user profile from Jira API...\n")
+			if !jsonFlag {
+				_, _ = fmt.Fprintf(cmd.OutOrStdout(), "🔄 Fetching user profile from Jira API...\n")
+			}
 			profile, err := jira.FetchCurrentUser()
 			if err != nil {
 				return fmt.Errorf("fetching user profile: %w", err)
@@ -218,8 +220,10 @@ func runFetch(cmd *cobra.Command, args []string) error {
 			// Save to config
 			if err := jira.SaveUserEmail(userEmail); err != nil {
 				// Non-fatal: log warning
-				_, _ = fmt.Fprintf(cmd.ErrOrStderr(), "Warning: failed to save user email to config: %v\n", err)
-			} else {
+				if !jsonFlag {
+					_, _ = fmt.Fprintf(cmd.ErrOrStderr(), "Warning: failed to save user email to config: %v\n", err)
+				}
+			} else if !jsonFlag {
 				_, _ = fmt.Fprintf(cmd.OutOrStdout(), "✅ User email saved to config: %s\n", userEmail)
 			}
 		}
@@ -329,8 +333,8 @@ func handleAPIError(err error, cmd *cobra.Command) error {
 // JSONOutput represents the JSON structure for output
 type JSONOutput struct {
 	Sprint struct {
-		ID    int    `json:"id"`
-		Total int    `json:"total"`
+		ID    int `json:"id"`
+		Total int `json:"total"`
 		Cache struct {
 			Age     string `json:"age"`
 			Expired bool   `json:"expired"`
@@ -342,9 +346,9 @@ type JSONOutput struct {
 	} `json:"filter"`
 	Tickets []jira.Ticket `json:"tickets"`
 	Summary struct {
-		Count      int    `json:"count"`
-		TotalCache int    `json:"total_cache"`
-		CacheUsed  bool   `json:"cache_used"`
+		Count      int  `json:"count"`
+		TotalCache int  `json:"total_cache"`
+		CacheUsed  bool `json:"cache_used"`
 	} `json:"summary"`
 }
 
