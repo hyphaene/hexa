@@ -53,6 +53,11 @@ func init() {
 	fetchCmd.Flags().BoolVarP(&verboseFlag, "verbose", "v", false, "Show detailed progress information")
 	fetchCmd.Flags().IntVar(&sprintNumberFlag, "sprint-number", 0, "Fetch specific sprint by number (e.g., 35)")
 	fetchCmd.Flags().StringVarP(&outputFlag, "output", "o", "", "Write output to file (markdown by default, JSON if --json)")
+
+	// Register completion for filter flag values
+	_ = fetchCmd.RegisterFlagCompletionFunc("filter", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		return []string{"all", "me", "unassigned"}, cobra.ShellCompDirectiveNoFileComp
+	})
 }
 
 func runFetch(cmd *cobra.Command, args []string) error {
