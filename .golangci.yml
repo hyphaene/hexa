@@ -45,10 +45,3 @@ issues:
   uniq-by-line: true
   max-issues-per-linter: 0
   max-same-issues: 0
-  exclude-use-default: false
-  exclude-rules:
-    # Ignorer complexité de runFetch (fonction principale CLI)
-    - path: cmd/jira/sprint/fetch\.go
-      linters:
-        - gocyclo
-      text: "cyclomatic complexity .* of func `runFetch`"
