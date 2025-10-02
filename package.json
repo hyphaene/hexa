@@ -10,7 +10,10 @@
     "build": " go build -o hexa",
     "test": "echo \"Error: no test specified\" && exit 1",
     "jira:sprint": "npm run build; ./hexa jira ticket get",
-    "check": "golangci-lint run"
+    "check": "golangci-lint run",
+    "ci:open": "open https://github.com/hyphaene/hexa/actions",
+    "pr:open": "open https://github.com/hyphaene/hexa/pulls",
+    "repo:open": "open https://github.com/hyphaene/hexa"
   },
   "repository": {
     "type": "git",
