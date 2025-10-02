@@ -1,6 +1,7 @@
-version: 2
+version: "2"
 
 linters:
+  default: none
   enable:
     - errcheck
     - govet
@@ -8,24 +9,20 @@ linters:
     - staticcheck
     - unused
 
-formatters:
-  enable:
-    - gofmt
-    - goimports
-
-formatters-settings:
-  gofmt:
-    simplify: true
-  goimports:
-    local-prefixes: github.com/hyphaene/hexa
+  exclusions:
+    paths:
+      - vendor$
 
 run:
+  concurrency: 4
   timeout: 5m
-  skip-dirs:
-    - vendor
-    - .git
 
 issues:
-  exclude-use-default: false
+  uniq-by-line: true
   max-issues-per-linter: 0
   max-same-issues: 0
+
+output:
+  formats:
+    text:
+      path: stdout
