@@ -58,6 +58,11 @@ func init() {
 	_ = fetchCmd.RegisterFlagCompletionFunc("filter", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		return []string{"all", "me", "unassigned"}, cobra.ShellCompDirectiveNoFileComp
 	})
+
+	// Register completion for output flag (file paths)
+	_ = fetchCmd.RegisterFlagCompletionFunc("output", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		return nil, cobra.ShellCompDirectiveDefault
+	})
 }
 
 func runFetch(cmd *cobra.Command, args []string) error {
@@ -399,7 +404,7 @@ func writeToFile(filepath string, tickets []jira.Ticket, cacheAge time.Duration,
 		if noCache {
 			md.WriteString("**Cache Status**: Bypassed (--no-cache)\n")
 		}
-		md.WriteString(fmt.Sprintf("\n## Summary\n\n"))
+		md.WriteString("\n## Summary\n\n")
 		md.WriteString(fmt.Sprintf("- **Total tickets in sprint**: %d\n", total))
 		md.WriteString(fmt.Sprintf("- **Filtered tickets**: %d\n\n", len(tickets)))
 
