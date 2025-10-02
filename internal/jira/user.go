@@ -24,7 +24,7 @@ func FetchCurrentUser() (*UserProfile, error) {
 		return nil, fmt.Errorf("jira.token and jira.url must be configured")
 	}
 
-	url := fmt.Sprintf("%s/rest/api/3/myself", jiraURL)
+	url := fmt.Sprintf("%s/rest/api/latest/myself", jiraURL)
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
