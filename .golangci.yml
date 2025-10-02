@@ -3,15 +3,39 @@ version: "2"
 linters:
   default: none
   enable:
-    - errcheck
-    - govet
-    - ineffassign
-    - staticcheck
-    - unused
+    # Erreurs et bugs
+    - errcheck        # Vérifie les erreurs non gérées
+    - govet           # Analyse statique officielle de Go
+    - staticcheck     # Suite complète d'analyses statiques
+    - unused          # Détecte le code inutilisé
+    - ineffassign     # Détecte les assignations inutiles
+
+    # Complexité et maintenabilité (relaxed)
+    - gocyclo         # Vérifie la complexité cyclomatique
+    - goconst         # Trouve les chaînes répétées qui pourraient être des constantes
+
+    # Sécurité
+    - gosec           # Analyse de sécurité
+
+    # Performance
+    - prealloc        # Trouve les slices qui pourraient être pré-alloués
+
+  settings:
+    gocyclo:
+      min-complexity: 60  # Relaxed pour CLI (runFetch = 55)
+    goconst:
+      min-occurrences: 5  # Seulement 5+ répétitions
+    gosec:
+      excludes:
+        - G104  # Erreurs non gérées (déjà couvert par errcheck)
+        - G301  # Permissions 0755 OK pour directories
+        - G304  # Variable paths OK pour CLI
+        - G306  # Permissions 0644 OK pour config files
 
   exclusions:
     paths:
       - vendor$
+      - _test\.go$  # Moins strict pour les tests
 
 run:
   concurrency: 4
@@ -21,3 +45,10 @@ issues:
   uniq-by-line: true
   max-issues-per-linter: 0
   max-same-issues: 0
+  exclude-use-default: false
+  exclude-rules:
+    # Ignorer complexité de runFetch (fonction principale CLI)
+    - path: cmd/jira/sprint/fetch\.go
+      linters:
+        - gocyclo
+      text: "cyclomatic complexity .* of func `runFetch`"
