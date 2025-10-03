@@ -33,6 +33,62 @@ type Sprint struct {
 	AutoStartStop bool      `json:"autoStartStop"`
 }
 
+// GetSprintIdFromNumber resolves sprint ID from a sprint number (eg. 35 -> "Sprint SEE x SOP 35")
+func GetSprintIdFromNumber(sprintNumber int) (int, error) {
+	boardName := viper.GetString("jira.boardName")
+	if boardName == "" {
+		return 0, fmt.Errorf("jira.boardName not configured")
+	}
+
+	// Get board ID
+	var boardID int
+	if viper.IsSet("jira.boardId") {
+		boardID = viper.GetInt("jira.boardId")
+	} else {
+		var err error
+		boardID, err = GetBoardIdFromName(boardName)
+		if err != nil {
+			return 0, fmt.Errorf("resolving board ID: %w", err)
+		}
+	}
+
+	// Search for sprint matching "Sprint {boardName} {number}"
+	sprintName := fmt.Sprintf("Sprint %s %d", boardName, sprintNumber)
+	url := fmt.Sprintf("%s/rest/agile/1.0/board/%d/sprint?maxResults=500", viper.GetString("jira.url"), boardID)
+
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return 0, fmt.Errorf("creating request: %w", err)
+	}
+
+	req.Header.Add("Accept", "application/json")
+	req.Header.Add("Authorization", "Bearer "+viper.GetString("jira.token"))
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return 0, fmt.Errorf("calling API: %w", err)
+	}
+	defer func() { _ = resp.Body.Close() }()
+
+	if resp.StatusCode != http.StatusOK {
+		return 0, fmt.Errorf("API returned status %d", resp.StatusCode)
+	}
+
+	var sprintResp SprintListResponse
+	if err := json.NewDecoder(resp.Body).Decode(&sprintResp); err != nil {
+		return 0, fmt.Errorf("decoding response: %w", err)
+	}
+
+	// Find matching sprint
+	for _, sprint := range sprintResp.Values {
+		if sprint.Name == sprintName {
+			return sprint.ID, nil
+		}
+	}
+
+	return 0, fmt.Errorf("sprint '%s' not found", sprintName)
+}
+
 func GetCurrentSprintId() (int, error) {
 	jiraToken := viper.GetString("jira.token")
 

@@ -22,6 +22,12 @@ func UpdateYAMLField(filePath string, key string, value any) error {
 		root.Content = []*yaml.Node{{
 			Kind: yaml.MappingNode,
 		}}
+	} else if len(data) == 0 {
+		// Fichier vide, créer un document vide
+		root.Kind = yaml.DocumentNode
+		root.Content = []*yaml.Node{{
+			Kind: yaml.MappingNode,
+		}}
 	} else {
 		if err := yaml.Unmarshal(data, &root); err != nil {
 			return fmt.Errorf("parsing yaml: %w", err)
