@@ -35,15 +35,15 @@ type Sprint struct {
 
 // GetSprintIdFromNumber resolves sprint ID from a sprint number (eg. 35 -> "Sprint SEE x SOP 35")
 func GetSprintIdFromNumber(sprintNumber int) (int, error) {
-	boardName := viper.GetString("jira.boardName")
+	boardName := viper.GetString("jira.sprint.boardName")
 	if boardName == "" {
-		return 0, fmt.Errorf("jira.boardName not configured")
+		return 0, fmt.Errorf("jira.sprint.boardName not configured")
 	}
 
 	// Get board ID
 	var boardID int
-	if viper.IsSet("jira.boardId") {
-		boardID = viper.GetInt("jira.boardId")
+	if viper.IsSet("jira.sprint.boardId") {
+		boardID = viper.GetInt("jira.sprint.boardId")
 	} else {
 		var err error
 		boardID, err = GetBoardIdFromName(boardName)
@@ -92,15 +92,15 @@ func GetSprintIdFromNumber(sprintNumber int) (int, error) {
 func GetCurrentSprintId() (int, error) {
 	jiraToken := viper.GetString("jira.token")
 
-	// Priorité 1: utiliser jira.boardId si présent (évite appel API)
+	// Priorité 1: utiliser jira.sprint.boardId si présent (évite appel API)
 	var boardID int
-	if viper.IsSet("jira.boardId") {
-		boardID = viper.GetInt("jira.boardId")
+	if viper.IsSet("jira.sprint.boardId") {
+		boardID = viper.GetInt("jira.sprint.boardId")
 	} else {
-		// Priorité 2: résoudre via jira.boardName (fallback)
-		boardName := viper.GetString("jira.boardName")
+		// Priorité 2: résoudre via jira.sprint.boardName (fallback)
+		boardName := viper.GetString("jira.sprint.boardName")
 		if boardName == "" {
-			return 0, fmt.Errorf("neither jira.boardId nor jira.boardName is configured. Run 'hexa jira init --board-name \"YOUR_BOARD\" --config-path .hexa.local.yml' to initialize")
+			return 0, fmt.Errorf("neither jira.sprint.boardId nor jira.sprint.boardName is configured. Run 'hexa jira init --board-name \"YOUR_BOARD\" --config-path .hexa.local.yml' to initialize")
 		}
 		var err error
 		boardID, err = GetBoardIdFromName(boardName)

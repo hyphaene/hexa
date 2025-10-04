@@ -8,7 +8,7 @@ import (
 )
 
 // UpdateYAMLField met à jour un champ YAML en préservant commentaires et structure
-// Supporte les chemins imbriqués avec notation pointée: "jira.boardId"
+// Supporte les chemins imbriqués avec notation pointée: "jira.sprint.boardId"
 func UpdateYAMLField(filePath string, key string, value any) error {
 	// Lire le fichier existant (ou créer structure vide)
 	var root yaml.Node
@@ -60,12 +60,12 @@ func setNestedField(root *yaml.Node, key string, value any) error {
 		return fmt.Errorf("root is not a mapping")
 	}
 
-	// Support notation pointée: "jira.boardId"
+	// Support notation pointée: "jira.sprint.boardId"
 	keys := splitKey(key)
 	return setNestedFieldRecursive(mappingNode, keys, value)
 }
 
-// splitKey sépare "jira.boardId" en ["jira", "boardId"]
+// splitKey sépare "jira.sprint.boardId" en ["jira", "sprint", "boardId"]
 func splitKey(key string) []string {
 	var result []string
 	current := ""

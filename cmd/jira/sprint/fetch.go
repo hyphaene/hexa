@@ -70,7 +70,7 @@ func runFetch(cmd *cobra.Command, args []string) error {
 	if verboseFlag && !jsonFlag {
 		_, _ = fmt.Fprintf(cmd.ErrOrStderr(), "🔍 [DEBUG] Starting fetch command\n")
 		_, _ = fmt.Fprintf(cmd.ErrOrStderr(), "🔍 [DEBUG] Jira URL: %s\n", viper.GetString("jira.url"))
-		_, _ = fmt.Fprintf(cmd.ErrOrStderr(), "🔍 [DEBUG] Board ID: %d\n", viper.GetInt("jira.boardId"))
+		_, _ = fmt.Fprintf(cmd.ErrOrStderr(), "🔍 [DEBUG] Board ID: %d\n", viper.GetInt("jira.sprint.boardId"))
 		if viper.GetString("jira.token") == "" {
 			_, _ = fmt.Fprintf(cmd.ErrOrStderr(), "⚠️  [WARN] jira.token is not configured!\n")
 		}

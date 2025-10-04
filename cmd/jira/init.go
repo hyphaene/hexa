@@ -8,6 +8,7 @@ import (
 	"github.com/hyphaene/hexa/internal/config"
 	internalJira "github.com/hyphaene/hexa/internal/jira"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 var (
@@ -27,13 +28,9 @@ Example:
 }
 
 func init() {
-	initCmd.Flags().StringVar(&boardName, "board-name", "", "Name of the Jira board to resolve (required)")
+	initCmd.Flags().StringVar(&boardName, "board-name", "", "Name of the Jira board to resolve")
 	initCmd.Flags().StringVar(&configPath, "config-path", "", "Path to the config file to update (required)")
-	err := initCmd.MarkFlagRequired("board-name")
-	if err != nil {
-		fmt.Println("marking board-name flag as required: %w", err)
-	}
-	err = initCmd.MarkFlagRequired("config-path")
+	err := initCmd.MarkFlagRequired("config-path")
 	if err != nil {
 		fmt.Println("marking config-path flag as required: %w", err)
 	}
@@ -42,6 +39,16 @@ func init() {
 }
 
 func runInit(cmd *cobra.Command, args []string) error {
+	// Fallback to viper config if flag not provided
+	if boardName == "" {
+		boardName = viper.GetString("jira.sprint.boardName")
+	}
+
+	// Validate board name is provided
+	if boardName == "" {
+		return fmt.Errorf("board name is required: provide via --board-name flag or set jira.sprint.boardName in config")
+	}
+
 	fmt.Printf("🔍 Resolving board ID for '%s'...\n", boardName)
 
 	// Résoudre le Board ID via API
@@ -75,14 +82,15 @@ func runInit(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	// Écrire jira.boardId avec notation pointée (préserve les autres champs de jira)
-	if err := config.UpdateYAMLField(absPath, "jira.boardId", boardID); err != nil {
+	// Écrire jira.sprint.boardId avec notation pointée (préserve les autres champs de jira)
+	if err := config.UpdateYAMLField(absPath, "jira.sprint.boardId", boardID); err != nil {
 		return fmt.Errorf("updating config file: %w", err)
 	}
 
 	fmt.Printf("✅ Configuration saved to: %s\n", absPath)
 	fmt.Printf("   jira:\n")
-	fmt.Printf("     boardId: %d\n", boardID)
+	fmt.Printf("     sprint:\n")
+	fmt.Printf("       boardId: %d\n", boardID)
 	fmt.Println()
 	fmt.Println("💡 Tip: Run 'hexa jira refresh' if the board ID becomes stale.")
 
