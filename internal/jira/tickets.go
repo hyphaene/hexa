@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"sort"
 	"sync"
 	"time"
 
@@ -23,6 +24,64 @@ type SprintIssuesResponse struct {
 	Issues     []Ticket `json:"issues"`
 }
 
+// HTTPError represents an HTTP error with status code
+type HTTPError struct {
+	StatusCode int
+	Message    string
+}
+
+func (e *HTTPError) Error() string {
+	return e.Message
+}
+
+// isRetriable checks if an error is worth retrying
+func isRetriable(err error) bool {
+	if err == nil {
+		return false
+	}
+
+	// Check if it's an HTTPError
+	var httpErr *HTTPError
+	if errors, ok := err.(*HTTPError); ok {
+		httpErr = errors
+	} else {
+		// For wrapped errors, try to extract HTTPError
+		for e := err; e != nil; {
+			if he, ok := e.(*HTTPError); ok {
+				httpErr = he
+				break
+			}
+			// Try to unwrap
+			if unwrapper, ok := e.(interface{ Unwrap() error }); ok {
+				e = unwrapper.Unwrap()
+			} else {
+				break
+			}
+		}
+	}
+
+	if httpErr != nil {
+		// Non-retriable status codes
+		switch httpErr.StatusCode {
+		case 400, 401, 403, 404, 405, 406, 410: // Client errors
+			return false
+		case 429: // Rate limit - retriable
+			return true
+		case 500, 502, 503, 504: // Server errors - retriable
+			return true
+		default:
+			// Other 4xx are non-retriable, 5xx are retriable
+			if httpErr.StatusCode >= 400 && httpErr.StatusCode < 500 {
+				return false
+			}
+			return true
+		}
+	}
+
+	// Network errors, timeouts, etc. are retriable
+	return true
+}
+
 // FetchSprintTickets fetches all tickets from a sprint with pagination
 func FetchSprintTickets(sprintID int, verbose bool) ([]Ticket, int, error) {
 	jiraToken := viper.GetString("jira.token")
@@ -34,23 +93,42 @@ func FetchSprintTickets(sprintID int, verbose bool) ([]Ticket, int, error) {
 
 	// Create HTTP client with timeout
 	client := &http.Client{
-		Timeout: 30 * time.Second,
+		Timeout: viper.GetDuration("jira.sprint.timeout"),
 	}
 
 	var allTickets []Ticket
-
-	_, total, err := GetTickets(context.Background(), client, sprintID, 0, 1, 0, verbose)
-
-	if err != nil {
-		return nil, 0, fmt.Errorf("fetching tickets: %w", err)
-	}
-	totalCount := total
 
 	maxResults := viper.GetInt("jira.sprint.maxResults")
 	maxRetries := viper.GetInt("jira.sprint.maxRetries")
 	retryDelay := viper.GetDuration("jira.sprint.retryDelay")
 
-	pageRequests := CalculatePageRequests(totalCount, maxResults)
+	var totalCount int
+	var pageRequests []PageRequest
+
+	// Optimize first call: fetch full batch if maxResults <= 50
+	if maxResults <= 50 {
+		// Fetch first batch and use it
+		firstBatch, total, err := GetTickets(context.Background(), client, sprintID, 0, maxResults, verbose)
+		if err != nil {
+			return nil, 0, fmt.Errorf("fetching tickets: %w", err)
+		}
+		allTickets = append(allTickets, firstBatch.Issues...)
+		totalCount = total
+
+		// Calculate remaining pages (skip page 1)
+		allPageRequests := CalculatePageRequests(totalCount, maxResults)
+		if len(allPageRequests) > 1 {
+			pageRequests = allPageRequests[1:]
+		}
+	} else {
+		// Fallback: fetch 1 ticket just for total count
+		_, total, err := GetTickets(context.Background(), client, sprintID, 0, 1, verbose)
+		if err != nil {
+			return nil, 0, fmt.Errorf("fetching tickets: %w", err)
+		}
+		totalCount = total
+		pageRequests = CalculatePageRequests(totalCount, maxResults)
+	}
 
 	// Initialize progress bar or verbose logs
 	var bar *progressbar.ProgressBar
@@ -67,9 +145,23 @@ func FetchSprintTickets(sprintID int, verbose bool) ([]Ticket, int, error) {
 				fmt.Fprint(os.Stderr, "\n")
 			}),
 		)
+		// Ensure progress bar is finalized even on error
+		defer func() {
+			if bar != nil {
+				_ = bar.Finish()
+			}
+		}()
+		// Update progress bar with already fetched tickets
+		if len(allTickets) > 0 {
+			_ = bar.Add(len(allTickets))
+		}
 	} else {
 		fmt.Fprint(os.Stderr, "🚀 Starting to fetch tickets...\n")
 		fmt.Fprintf(os.Stderr, "ℹ️  Total tickets to fetch: %d\n", totalCount)
+		if len(allTickets) > 0 {
+			fmt.Fprintf(os.Stderr, "✅ [API Call 1] Received %d tickets (total: %d/%d)\n",
+				len(allTickets), len(allTickets), totalCount)
+		}
 	}
 
 	var mu sync.Mutex
@@ -97,10 +189,17 @@ func FetchSprintTickets(sprintID int, verbose bool) ([]Ticket, int, error) {
 					fmt.Fprintf(os.Stderr, "🌐 [API Call %d] Fetching tickets %d to %d...\n", req.PageNum, req.StartAt+1, lastResults)
 				}
 
-				sprintResp, _, err = GetTickets(ctx, client, sprintID, req.StartAt, req.MaxResults, req.PageNum, verbose)
+				sprintResp, _, err = GetTickets(ctx, client, sprintID, req.StartAt, req.MaxResults, verbose)
 				if err == nil {
 					// Success
 					break
+				}
+
+				// Check if error is retriable
+				if !isRetriable(err) {
+					fmt.Fprintf(os.Stderr, "❌ [API Call %d] Non-retriable error: %v\n", req.PageNum, err)
+					return fmt.Errorf("page %d (tickets %d-%d) non-retriable error: %w",
+						req.PageNum, req.StartAt+1, lastResults, err)
 				}
 
 				// If not last attempt, wait before retry
@@ -140,10 +239,10 @@ func FetchSprintTickets(sprintID int, verbose bool) ([]Ticket, int, error) {
 		return nil, 0, err
 	}
 
-	// Ensure progress bar completes
-	if bar != nil {
-		_ = bar.Finish()
-	}
+	// Sort tickets by key for deterministic order
+	sort.Slice(allTickets, func(i, j int) bool {
+		return allTickets[i].Key < allTickets[j].Key
+	})
 
 	return allTickets, totalCount, nil
 }
@@ -188,7 +287,7 @@ func GetJiraFetchUrl(sprintID int, startAt int, maxResults int) string {
 		jiraURL, sprintID, startAt, maxResults)
 }
 
-func GetTickets(ctx context.Context, client *http.Client, sprintID int, startAt int, maxResults int, page int, verbose bool) (SprintIssuesResponse, int, error) {
+func GetTickets(ctx context.Context, client *http.Client, sprintID int, startAt int, maxResults int, verbose bool) (SprintIssuesResponse, int, error) {
 	jiraToken := viper.GetString("jira.token")
 	noData := SprintIssuesResponse{}
 
@@ -212,7 +311,10 @@ func GetTickets(ctx context.Context, client *http.Client, sprintID int, startAt 
 
 	if resp.StatusCode != http.StatusOK {
 		_ = resp.Body.Close()
-		return noData, 0, fmt.Errorf("jira API returned status %d", resp.StatusCode)
+		return noData, 0, &HTTPError{
+			StatusCode: resp.StatusCode,
+			Message:    fmt.Sprintf("jira API returned status %d", resp.StatusCode),
+		}
 	}
 
 	var sprintResp SprintIssuesResponse

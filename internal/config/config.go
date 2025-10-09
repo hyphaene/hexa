@@ -49,6 +49,12 @@ func Initialize() {
 		}
 	}
 
+	// Validate configuration values after all configs are merged
+	if err := ValidateConfig(); err != nil {
+		fmt.Fprintf(os.Stderr, "Configuration validation failed: %v\n", err)
+		os.Exit(1)
+	}
+
 	if env.Debug {
 		fmt.Println("Viper configuration initialized successfully")
 	}
@@ -133,4 +139,22 @@ func setDefaults() {
 	viper.SetDefault("jira.sprint.maxResults", 25)
 	viper.SetDefault("jira.sprint.maxRetries", 3)
 	viper.SetDefault("jira.sprint.retryDelay", 1*time.Second)
+	viper.SetDefault("jira.sprint.timeout", 30*time.Second)
+}
+
+// ValidateConfig validates configuration values
+func ValidateConfig() error {
+	if viper.GetInt("jira.sprint.maxResults") <= 0 {
+		return fmt.Errorf("jira.sprint.maxResults must be > 0, got %d", viper.GetInt("jira.sprint.maxResults"))
+	}
+	if viper.GetInt("jira.sprint.maxRetries") < 1 {
+		return fmt.Errorf("jira.sprint.maxRetries must be >= 1, got %d", viper.GetInt("jira.sprint.maxRetries"))
+	}
+	if viper.GetDuration("jira.sprint.retryDelay") < 0 {
+		return fmt.Errorf("jira.sprint.retryDelay must be >= 0, got %s", viper.GetDuration("jira.sprint.retryDelay"))
+	}
+	if viper.GetDuration("jira.sprint.timeout") <= 0 {
+		return fmt.Errorf("jira.sprint.timeout must be > 0, got %s", viper.GetDuration("jira.sprint.timeout"))
+	}
+	return nil
 }

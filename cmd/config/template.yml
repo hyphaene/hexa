@@ -2,6 +2,9 @@ jira:
   sprint:
     boardName: "YOUR_PROJECT"
     maxResults: 25 # Number of tickets per API request (default: 25)
+    maxRetries: 3 # Number of retry attempts for failed API calls (default: 3)
+    retryDelay: 1s # Delay between retry attempts (default: 1s)
+    timeout: 30s # HTTP client timeout for API requests (default: 30s)
 
   url: https://your-jira-instance.com
   token: "${HEXA_JIRA_TOKEN}" # Set your JIRA_TOKEN environment variable
