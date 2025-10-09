@@ -32,7 +32,7 @@ func init() {
 	initCmd.Flags().StringVar(&configPath, "config-path", "", "Path to the config file to update (required)")
 	err := initCmd.MarkFlagRequired("config-path")
 	if err != nil {
-		fmt.Println("marking config-path flag as required: %w", err)
+		fmt.Printf("marking config-path flag as required: %v\n", err)
 	}
 
 	JiraCmd.AddCommand(initCmd)

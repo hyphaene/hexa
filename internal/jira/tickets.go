@@ -49,6 +49,16 @@ func FetchSprintTickets(sprintID int, verbose bool) ([]Ticket, int, error) {
 		maxResults = 25 // Default fallback
 	}
 
+	maxRetries := viper.GetInt("jira.sprint.maxRetries")
+	if maxRetries <= 0 {
+		maxRetries = 3 // Default fallback
+	}
+
+	retryDelay := viper.GetDuration("jira.sprint.retryDelay")
+	if retryDelay <= 0 {
+		retryDelay = 1 * time.Second // Default fallback
+	}
+
 	pageRequests := CalculatePageRequests(totalCount, maxResults)
 
 	// Initialize progress bar or verbose logs
@@ -67,12 +77,14 @@ func FetchSprintTickets(sprintID int, verbose bool) ([]Ticket, int, error) {
 			}),
 		)
 	} else {
-		fmt.Print("🚀 Starting to fetch tickets...\n")
-		fmt.Printf("ℹ️  Total tickets to fetch: %d\n", totalCount)
+		fmt.Fprint(os.Stderr, "🚀 Starting to fetch tickets...\n")
+		fmt.Fprintf(os.Stderr, "ℹ️  Total tickets to fetch: %d\n", totalCount)
 	}
 
 	var mu sync.Mutex
 	var wg sync.WaitGroup
+	var errors []error
+	var errorsMu sync.Mutex
 
 	for _, req := range pageRequests {
 		wg.Add(1)
@@ -80,13 +92,42 @@ func FetchSprintTickets(sprintID int, verbose bool) ([]Ticket, int, error) {
 			defer wg.Done()
 			lastResults := min(req.StartAt+req.MaxResults, totalCount)
 
-			if verbose {
-				fmt.Printf("🌐 [API Call %d] Fetching tickets %d to %d...\n", req.PageNum, req.StartAt+1, lastResults)
+			var sprintResp SprintIssuesResponse
+			var err error
+
+			// Retry loop with linear backoff
+			for attempt := 0; attempt < maxRetries; attempt++ {
+				if verbose && attempt > 0 {
+					fmt.Fprintf(os.Stderr, "🔄 [API Call %d] Retry %d/%d...\n", req.PageNum, attempt, maxRetries-1)
+				}
+
+				if verbose && attempt == 0 {
+					fmt.Fprintf(os.Stderr, "🌐 [API Call %d] Fetching tickets %d to %d...\n", req.PageNum, req.StartAt+1, lastResults)
+				}
+
+				sprintResp, _, err = GetTickets(client, sprintID, req.StartAt, req.MaxResults, req.PageNum, verbose)
+				if err == nil {
+					// Success
+					break
+				}
+
+				// If not last attempt, wait before retry
+				if attempt < maxRetries-1 {
+					if verbose {
+						fmt.Fprintf(os.Stderr, "⚠️  [API Call %d] Attempt %d failed: %v. Retrying in %s...\n",
+							req.PageNum, attempt+1, err, retryDelay)
+					}
+					time.Sleep(retryDelay)
+				}
 			}
 
-			sprintResp, _, err := GetTickets(client, sprintID, req.StartAt, req.MaxResults, req.PageNum, verbose)
+			// If still error after all retries, collect it
 			if err != nil {
-				fmt.Fprintf(os.Stderr, "❌ [API Call %d] Error fetching tickets: %v\n", req.PageNum, err)
+				errorsMu.Lock()
+				errors = append(errors, fmt.Errorf("page %d (tickets %d-%d) failed after %d attempts: %w",
+					req.PageNum, req.StartAt+1, lastResults, maxRetries, err))
+				errorsMu.Unlock()
+				fmt.Fprintf(os.Stderr, "❌ [API Call %d] All retry attempts exhausted\n", req.PageNum)
 				return
 			}
 
@@ -108,6 +149,11 @@ func FetchSprintTickets(sprintID int, verbose bool) ([]Ticket, int, error) {
 	// Ensure progress bar completes
 	if bar != nil {
 		_ = bar.Finish()
+	}
+
+	// Check if any pages failed after all retries
+	if len(errors) > 0 {
+		return nil, 0, fmt.Errorf("failed to fetch %d page(s): %v", len(errors), errors)
 	}
 
 	return allTickets, totalCount, nil
@@ -161,11 +207,6 @@ func GetTickets(client *http.Client, sprintID int, startAt int, maxResults int, 
 		return noData, 0, fmt.Errorf("jira.token must be configured")
 	}
 	url := GetJiraFetchUrl(sprintID, startAt, maxResults)
-
-	// Show API call info only in verbose mode
-	if verbose {
-		fmt.Fprintf(os.Stderr, "🌐 [API Call %d] GET %s\n", page, url)
-	}
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
