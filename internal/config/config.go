@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"gopkg.in/yaml.v3"
 
@@ -25,6 +26,10 @@ func Initialize() {
 
 	// Clear any existing config
 	viper.Reset()
+
+	// Set defaults before loading configs
+	setDefaults()
+
 	viper.SetEnvPrefix("HEXA")
 	viper.AutomaticEnv()
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
@@ -120,4 +125,12 @@ func getConfig(configPath string) map[string]any {
 	}
 
 	return v.AllSettings()
+}
+
+// setDefaults sets default values for all configuration keys
+func setDefaults() {
+	// Jira sprint configuration
+	viper.SetDefault("jira.sprint.maxResults", 25)
+	viper.SetDefault("jira.sprint.maxRetries", 3)
+	viper.SetDefault("jira.sprint.retryDelay", 1*time.Second)
 }

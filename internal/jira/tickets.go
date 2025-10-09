@@ -1,6 +1,7 @@
 package jira
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -10,6 +11,7 @@ import (
 
 	"github.com/schollz/progressbar/v3"
 	"github.com/spf13/viper"
+	"golang.org/x/sync/errgroup"
 )
 
 // SprintIssuesResponse represents the API response for sprint tickets
@@ -37,7 +39,7 @@ func FetchSprintTickets(sprintID int, verbose bool) ([]Ticket, int, error) {
 
 	var allTickets []Ticket
 
-	_, total, err := GetTickets(client, sprintID, 0, 1, 0, verbose)
+	_, total, err := GetTickets(context.Background(), client, sprintID, 0, 1, 0, verbose)
 
 	if err != nil {
 		return nil, 0, fmt.Errorf("fetching tickets: %w", err)
@@ -45,19 +47,8 @@ func FetchSprintTickets(sprintID int, verbose bool) ([]Ticket, int, error) {
 	totalCount := total
 
 	maxResults := viper.GetInt("jira.sprint.maxResults")
-	if maxResults <= 0 {
-		maxResults = 25 // Default fallback
-	}
-
 	maxRetries := viper.GetInt("jira.sprint.maxRetries")
-	if maxRetries <= 0 {
-		maxRetries = 3 // Default fallback
-	}
-
 	retryDelay := viper.GetDuration("jira.sprint.retryDelay")
-	if retryDelay <= 0 {
-		retryDelay = 1 * time.Second // Default fallback
-	}
 
 	pageRequests := CalculatePageRequests(totalCount, maxResults)
 
@@ -82,14 +73,10 @@ func FetchSprintTickets(sprintID int, verbose bool) ([]Ticket, int, error) {
 	}
 
 	var mu sync.Mutex
-	var wg sync.WaitGroup
-	var errors []error
-	var errorsMu sync.Mutex
+	g, ctx := errgroup.WithContext(context.Background())
 
 	for _, req := range pageRequests {
-		wg.Add(1)
-		go func(req PageRequest) {
-			defer wg.Done()
+		g.Go(func() error {
 			lastResults := min(req.StartAt+req.MaxResults, totalCount)
 
 			var sprintResp SprintIssuesResponse
@@ -97,6 +84,11 @@ func FetchSprintTickets(sprintID int, verbose bool) ([]Ticket, int, error) {
 
 			// Retry loop with linear backoff
 			for attempt := 0; attempt < maxRetries; attempt++ {
+				// Check if context cancelled (another goroutine failed)
+				if ctx.Err() != nil {
+					return ctx.Err()
+				}
+
 				if verbose && attempt > 0 {
 					fmt.Fprintf(os.Stderr, "🔄 [API Call %d] Retry %d/%d...\n", req.PageNum, attempt, maxRetries-1)
 				}
@@ -105,7 +97,7 @@ func FetchSprintTickets(sprintID int, verbose bool) ([]Ticket, int, error) {
 					fmt.Fprintf(os.Stderr, "🌐 [API Call %d] Fetching tickets %d to %d...\n", req.PageNum, req.StartAt+1, lastResults)
 				}
 
-				sprintResp, _, err = GetTickets(client, sprintID, req.StartAt, req.MaxResults, req.PageNum, verbose)
+				sprintResp, _, err = GetTickets(ctx, client, sprintID, req.StartAt, req.MaxResults, req.PageNum, verbose)
 				if err == nil {
 					// Success
 					break
@@ -121,14 +113,11 @@ func FetchSprintTickets(sprintID int, verbose bool) ([]Ticket, int, error) {
 				}
 			}
 
-			// If still error after all retries, collect it
+			// If still error after all retries, fail fast
 			if err != nil {
-				errorsMu.Lock()
-				errors = append(errors, fmt.Errorf("page %d (tickets %d-%d) failed after %d attempts: %w",
-					req.PageNum, req.StartAt+1, lastResults, maxRetries, err))
-				errorsMu.Unlock()
 				fmt.Fprintf(os.Stderr, "❌ [API Call %d] All retry attempts exhausted\n", req.PageNum)
-				return
+				return fmt.Errorf("page %d (tickets %d-%d) failed after %d attempts: %w",
+					req.PageNum, req.StartAt+1, lastResults, maxRetries, err)
 			}
 
 			// Append results and update progress in a thread-safe way
@@ -142,18 +131,18 @@ func FetchSprintTickets(sprintID int, verbose bool) ([]Ticket, int, error) {
 			}
 			mu.Unlock()
 
-		}(req)
+			return nil
+		})
 	}
-	wg.Wait()
+
+	// Wait for all goroutines, fail-fast on first error
+	if err := g.Wait(); err != nil {
+		return nil, 0, err
+	}
 
 	// Ensure progress bar completes
 	if bar != nil {
 		_ = bar.Finish()
-	}
-
-	// Check if any pages failed after all retries
-	if len(errors) > 0 {
-		return nil, 0, fmt.Errorf("failed to fetch %d page(s): %v", len(errors), errors)
 	}
 
 	return allTickets, totalCount, nil
@@ -199,7 +188,7 @@ func GetJiraFetchUrl(sprintID int, startAt int, maxResults int) string {
 		jiraURL, sprintID, startAt, maxResults)
 }
 
-func GetTickets(client *http.Client, sprintID int, startAt int, maxResults int, page int, verbose bool) (SprintIssuesResponse, int, error) {
+func GetTickets(ctx context.Context, client *http.Client, sprintID int, startAt int, maxResults int, page int, verbose bool) (SprintIssuesResponse, int, error) {
 	jiraToken := viper.GetString("jira.token")
 	noData := SprintIssuesResponse{}
 
@@ -208,7 +197,7 @@ func GetTickets(client *http.Client, sprintID int, startAt int, maxResults int, 
 	}
 	url := GetJiraFetchUrl(sprintID, startAt, maxResults)
 
-	req, err := http.NewRequest("GET", url, nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {
 		return noData, 0, fmt.Errorf("creating request: %w", err)
 	}
