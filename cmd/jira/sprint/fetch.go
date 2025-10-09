@@ -165,7 +165,7 @@ func runFetch(cmd *cobra.Command, args []string) error {
 		if verboseFlag && !jsonFlag {
 			_, _ = fmt.Fprintf(cmd.ErrOrStderr(), "🔍 [DEBUG] Calling Jira API /rest/agile/1.0/sprint/%d/issue...\n", sprintID)
 		}
-		fetchedTickets, fetchedTotal, err := jira.FetchSprintTickets(sprintID)
+		fetchedTickets, fetchedTotal, err := jira.FetchSprintTickets(sprintID, verboseFlag)
 		if err != nil {
 			return handleAPIError(err, cmd)
 		}

@@ -49,7 +49,7 @@ func runPulse(cmd *cobra.Command, args []string) error {
 		_, _ = fmt.Fprintf(cmd.OutOrStdout(), "🔄 Récupération complète des tickets du sprint...\n")
 
 		// Fetch from API
-		fetchedTickets, fetchedTotal, err := jira.FetchSprintTickets(sprintID)
+		fetchedTickets, fetchedTotal, err := jira.FetchSprintTickets(sprintID, false)
 		if err != nil {
 			return fmt.Errorf("fetching sprint tickets: %w", err)
 		}
