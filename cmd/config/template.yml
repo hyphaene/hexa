@@ -1,6 +1,7 @@
 jira:
   sprint:
     boardName: "YOUR_PROJECT"
+    maxResults: 25 # Number of tickets per API request (default: 25)
 
   url: https://your-jira-instance.com
   token: "${HEXA_JIRA_TOKEN}" # Set your JIRA_TOKEN environment variable

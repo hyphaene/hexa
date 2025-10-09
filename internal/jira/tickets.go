@@ -44,7 +44,10 @@ func FetchSprintTickets(sprintID int, verbose bool) ([]Ticket, int, error) {
 	}
 	totalCount := total
 
-	const maxResults = 25 // Adjust based on Jira API limits and performance
+	maxResults := viper.GetInt("jira.sprint.maxResults")
+	if maxResults <= 0 {
+		maxResults = 25 // Default fallback
+	}
 
 	pageRequests := CalculatePageRequests(totalCount, maxResults)
 
@@ -68,7 +71,7 @@ func FetchSprintTickets(sprintID int, verbose bool) ([]Ticket, int, error) {
 		fmt.Printf("ℹ️  Total tickets to fetch: %d\n", totalCount)
 	}
 
-	mu := sync.Mutex{}
+	var mu sync.Mutex
 	var wg sync.WaitGroup
 
 	for _, req := range pageRequests {
