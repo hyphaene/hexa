@@ -1,0 +1,58 @@
+flowchart TD
+    Start([hexa CLI]) --> Root{hexa}
+
+    Root --> Config[config]
+    Root --> Jira[jira]
+    Root --> Version[version]
+    Root --> Completion[completion]
+
+    Config --> ConfigDisplay[Display merged config]
+    Config --> ConfigSetup[setup]
+    Config --> ConfigLocal[local]
+    Config --> ConfigUser[user]
+
+    ConfigLocal --> LocalGet[get]
+    ConfigLocal --> LocalSet[set]
+
+    ConfigUser --> UserGet[get]
+    ConfigUser --> UserSet[set]
+
+    Jira --> JiraInit[init]
+    Jira --> JiraSprint[sprint]
+    Jira --> JiraTicket[ticket]
+
+    JiraSprint --> SprintFetch[fetch]
+    JiraSprint --> SprintPulse[pulse]
+
+    JiraTicket --> TicketGet[get]
+    JiraTicket --> TicketMove[move]
+    JiraTicket --> TicketComment[comment]
+
+    Completion --> CompInstall[install]
+    Completion --> CompBash[bash]
+    Completion --> CompZsh[zsh]
+    Completion --> CompFish[fish]
+
+    ConfigSetup --> CreateGlobalConfig[Create ~/.hexa.yml from template]
+
+    JiraInit --> ResolveBoardID[Resolve board ID from name via API]
+    JiraInit --> SaveToConfig[Save boardId to specified config file]
+
+    SprintFetch --> FetchTickets[Fetch sprint tickets with retry logic]
+    SprintPulse --> PulseOverview[Display sprint overview]
+
+    TicketGet --> GetTicketDetails[Fetch ticket details]
+    TicketMove --> MoveTicketStatus[Change ticket status]
+    TicketComment --> AddComment[Add comment to ticket]
+
+    LocalGet --> GetLocalValue[Read from .hexa.local.yml]
+    LocalSet --> SetLocalValue[Write to .hexa.local.yml]
+    UserGet --> GetUserValue[Read from ~/.hexa.yml]
+    UserSet --> SetUserValue[Write to ~/.hexa.yml]
+
+    CompInstall --> InstallZsh[Install zsh completion to /usr/local/share/zsh/site-functions]
+    CompBash --> GenBash[Generate bash completion script]
+    CompZsh --> GenZsh[Generate zsh completion script]
+    CompFish --> GenFish[Generate fish completion script]
+
+    Version --> DisplayVersion[Display version number]

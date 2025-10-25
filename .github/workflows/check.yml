@@ -71,14 +71,29 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-go-
 
-      - name: Test
-        run: go test ./... -coverprofile=coverage.out
+      - name: Run tests
+        run: go test ./... -v -coverprofile=coverage.out -covermode=atomic
+
+      - name: Run tests with race detector
+        run: go test ./... -race
 
       - name: Upload coverage
         uses: actions/upload-artifact@v4
         with:
           name: coverage-${{ github.run_id }}
           path: coverage.out
+
+      - name: Check test coverage
+        run: |
+          coverage=$(go tool cover -func=coverage.out | grep total | awk '{print $3}' | sed 's/%//')
+          echo "Total coverage: ${coverage}%"
+          # Fail if coverage is below 5% (baseline - increase progressively)
+          if (( $(echo "$coverage < 5" | bc -l) )); then
+            echo "Coverage ${coverage}% is below minimum 5%"
+            exit 1
+          fi
+          # TODO: Increase minimum coverage as more tests are added
+          # Target progression: 5% → 10% → 20% → 30% → 50%
 
   build:
     runs-on: ubuntu-latest
@@ -113,3 +128,25 @@ jobs:
 
       - name: Build
         run: go build ./...
+
+  # Required checks job - use this as the required status check in branch protection
+  required-checks:
+    runs-on: ubuntu-latest
+    if: always()
+    needs: [lint, test, build]
+    steps:
+      - name: Check all jobs status
+        run: |
+          if [ "${{ needs.lint.result }}" != "success" ]; then
+            echo "Lint job failed"
+            exit 1
+          fi
+          if [ "${{ needs.test.result }}" != "success" ]; then
+            echo "Test job failed"
+            exit 1
+          fi
+          if [ "${{ needs.build.result }}" != "success" ]; then
+            echo "Build job failed"
+            exit 1
+          fi
+          echo "All required checks passed ✅"

@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"gopkg.in/yaml.v3"
 
@@ -25,6 +26,10 @@ func Initialize() {
 
 	// Clear any existing config
 	viper.Reset()
+
+	// Set defaults before loading configs
+	setDefaults()
+
 	viper.SetEnvPrefix("HEXA")
 	viper.AutomaticEnv()
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
@@ -42,6 +47,12 @@ func Initialize() {
 		if err := viper.MergeConfigMap(secretProjectConfig); err != nil && env.Debug {
 			fmt.Println("Error merging secret project config:", err)
 		}
+	}
+
+	// Validate configuration values after all configs are merged
+	if err := ValidateConfig(); err != nil {
+		fmt.Fprintf(os.Stderr, "Configuration validation failed: %v\n", err)
+		os.Exit(1)
 	}
 
 	if env.Debug {
@@ -120,4 +131,30 @@ func getConfig(configPath string) map[string]any {
 	}
 
 	return v.AllSettings()
+}
+
+// setDefaults sets default values for all configuration keys
+func setDefaults() {
+	// Jira sprint configuration
+	viper.SetDefault("jira.sprint.maxResults", 25)
+	viper.SetDefault("jira.sprint.maxRetries", 3)
+	viper.SetDefault("jira.sprint.retryDelay", 1*time.Second)
+	viper.SetDefault("jira.sprint.timeout", 30*time.Second)
+}
+
+// ValidateConfig validates configuration values
+func ValidateConfig() error {
+	if viper.GetInt("jira.sprint.maxResults") <= 0 {
+		return fmt.Errorf("jira.sprint.maxResults must be > 0, got %d", viper.GetInt("jira.sprint.maxResults"))
+	}
+	if viper.GetInt("jira.sprint.maxRetries") < 1 {
+		return fmt.Errorf("jira.sprint.maxRetries must be >= 1, got %d", viper.GetInt("jira.sprint.maxRetries"))
+	}
+	if viper.GetDuration("jira.sprint.retryDelay") < 0 {
+		return fmt.Errorf("jira.sprint.retryDelay must be >= 0, got %s", viper.GetDuration("jira.sprint.retryDelay"))
+	}
+	if viper.GetDuration("jira.sprint.timeout") <= 0 {
+		return fmt.Errorf("jira.sprint.timeout must be > 0, got %s", viper.GetDuration("jira.sprint.timeout"))
+	}
+	return nil
 }
