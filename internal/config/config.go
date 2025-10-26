@@ -21,7 +21,7 @@ func Initialize() {
 		fmt.Println("No .env file found (this is ok)")
 	}
 	rootConfig := getRootConfig()
-	projectConfig := getProjectConfig()
+	projectConfig := GetProjectConfig()
 	secretProjectConfig := getSecretProjectConfig()
 
 	// Clear any existing config
@@ -76,16 +76,20 @@ func getRootConfig() map[string]any {
 	return getConfig(configPath)
 }
 
-func getProjectConfig() map[string]any {
+func GetProjectConfigPath() (string, error) {
 	workingDir, err := os.Getwd()
 	if err != nil {
 		if env.Debug {
 			fmt.Println("Error getting working directory:", err)
+			return "", err
 		}
-		return nil
 	}
+	return filepath.Join(workingDir, ".hexa.yml"), nil
+}
 
-	configPath := filepath.Join(workingDir, ".hexa.yml")
+func GetProjectConfig() map[string]any {
+
+	configPath, _ := GetProjectConfigPath()
 	if env.Debug {
 		fmt.Println("Attempting to read project config from:", configPath)
 	}

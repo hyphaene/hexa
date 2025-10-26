@@ -161,10 +161,18 @@ func ReadYAMLField(filePath string, key string) (any, error) {
 		return nil, fmt.Errorf("parsing yaml: %w", err)
 	}
 
-	value, ok := config[key]
-	if !ok {
-		return nil, fmt.Errorf("key '%s' not found", key)
+	current := any(config)
+	for _, part := range splitKey(key) {
+		asMap, ok := current.(map[string]any)
+		if !ok {
+			return nil, fmt.Errorf("key '%s' not found", key)
+		}
+		next, ok := asMap[part]
+		if !ok {
+			return nil, fmt.Errorf("key '%s' not found", key)
+		}
+		current = next
 	}
 
-	return value, nil
+	return current, nil
 }
