@@ -41,3 +41,5 @@ gitignored
 .hexa.yml
 .hexa.local.yml
 .env
+
+alexandria
