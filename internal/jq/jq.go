@@ -7,7 +7,8 @@ import (
 	"os/exec"
 )
 
-// VerifyJqInstalled checks if jq binary is available in PATH
+// VerifyJqInstalled checks if jq binary is available in PATH.
+// Returns error with installation instructions if jq is not found.
 func VerifyJqInstalled() error {
 	cmd := exec.Command("jq", "--version")
 	if _, err := cmd.CombinedOutput(); err != nil {
@@ -16,7 +17,8 @@ func VerifyJqInstalled() error {
 	return nil
 }
 
-// PrettyPrint marshals data to JSON and pipes it through jq for colored output
+// PrettyPrint marshals data to JSON and pipes it through jq for colored output to stdout.
+// Requires jq to be installed and available in PATH.
 func PrettyPrint(data any) error {
 	jsonOutput, err := json.Marshal(data)
 	if err != nil {

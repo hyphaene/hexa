@@ -77,6 +77,8 @@ func getRootConfig() map[string]any {
 	return getConfig(configPath)
 }
 
+// GetProjectConfigPath returns the absolute path to .hexa.yml in the git repository root.
+// Returns error if not in a git repository or if repo root cannot be determined.
 func GetProjectConfigPath() (string, error) {
 	repoRoot, err := git.GetRepoRootPath()
 	if err != nil {
@@ -85,7 +87,9 @@ func GetProjectConfigPath() (string, error) {
 	return filepath.Join(repoRoot, ".hexa.yml"), nil
 }
 
-// EnsureProjectConfigExists creates .hexa.yml with minimal template if it doesn't exist
+// EnsureProjectConfigExists creates .hexa.yml at repo root with minimal template if it doesn't exist.
+// Creates the file automatically without prompting - safe to call on fresh repos.
+// Returns error only on real failures (permissions, IO errors).
 func EnsureProjectConfigExists() error {
 	path, err := GetProjectConfigPath()
 	if err != nil {
@@ -118,6 +122,8 @@ github:
 	return nil
 }
 
+// GetProjectConfig reads and returns the project configuration from .hexa.yml at repo root.
+// Returns nil if file doesn't exist or cannot be read (not considered an error).
 func GetProjectConfig() map[string]any {
 
 	configPath, _ := GetProjectConfigPath()

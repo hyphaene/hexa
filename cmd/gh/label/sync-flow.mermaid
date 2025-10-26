@@ -1,93 +1,55 @@
 flowchart TD
     Start([hexa gh label sync])
 
-    Start --> CheckGitRepo{git repo?}
-    CheckGitRepo -->|NO| ErrorExit1[Error: not a git repo]
-    CheckGitRepo -->|YES| CheckGhAuth
+    Start --> Checks
 
-    CheckGhAuth{gh authenticated?}
-    CheckGhAuth -->|NO| ErrorExit2[Error: gh not authenticated]
-    CheckGhAuth -->|YES| CheckRemote
+    subgraph Checks[Validation Checks]
+        C1[git repo]
+        C2[gh auth]
+        C3[remote]
+        C4[jq installed]
+        C5[config exists]
+    end
 
-    CheckRemote{gh remote exists?}
-    CheckRemote -->|NO| ErrorExit3[Error: no remote]
-    CheckRemote -->|YES| ReadConfig
+    Checks --> AllOk{all pass?}
+    AllOk -->|NO| Err[Return error]
+    AllOk -->|YES| ConfigExists{.hexa.yml exists?}
 
-    ReadConfig[ReadGithubLabelsFromConfig]
-    ReadConfig --> ConfigCheck{.hexa.yml exists?}
+    ConfigExists -->|NO| CreateConfig[Create .hexa.yml]
+    ConfigExists -->|YES| Prompt
 
-    ConfigCheck -->|NO| ErrorExit4[❌ BUG: os.ReadFile error]
-    ConfigCheck -->|YES| KeyCheck
+    CreateConfig --> Prompt
 
-    KeyCheck{github.labels exists?}
-    KeyCheck -->|NO| ErrorExit5[❌ BUG: ReadYAMLField error]
-    KeyCheck -->|YES| LabelsNil
+    Prompt[promptUserForSync]
+    Prompt --> Confirm{user confirms?}
 
-    LabelsNil{labels != nil?}
-    LabelsNil -->|YES| ConfirmSync[Confirm: Data exists, sync again?]
-    LabelsNil -->|NO| ConfirmFetch[Confirm: No data, fetch from GH?]
+    Confirm -->|NO| Exit[Exit cleanly]
+    Confirm -->|YES| Fetch
 
-    ConfirmSync --> UserConfirm1{user confirms?}
-    ConfirmFetch --> UserConfirm2{user confirms?}
+    Fetch[gh.FetchLabels]
+    Fetch --> FetchOk{success?}
 
-    UserConfirm1 -->|NO| Exit[Exit cleanly]
-    UserConfirm2 -->|NO| Exit
+    FetchOk -->|NO| Err
+    FetchOk -->|YES| GetPath
 
-    UserConfirm1 -->|YES| FetchLabels
-    UserConfirm2 -->|YES| FetchLabels
+    GetPath[config.GetProjectConfigPath]
+    GetPath --> PathOk{success?}
 
-    FetchLabels[gh label list --json]
-    FetchLabels --> FetchOk{fetch success?}
+    PathOk -->|NO| Err
+    PathOk -->|YES| Update
 
-    FetchOk -->|NO| ErrorExit6[Error: gh fetch failed]
-    FetchOk -->|YES| GetConfigPath
+    Update[config.UpdateYAMLField]
+    Update --> UpdateOk{success?}
 
-    GetConfigPath[GetProjectConfigPath]
-    GetConfigPath --> PathOk{path resolved?}
+    UpdateOk -->|NO| Err
+    UpdateOk -->|YES| Pretty
 
-    PathOk -->|NO| ErrorExit7[Error: config path]
-    PathOk -->|YES| UpdateYAML
+    Pretty[jq.PrettyPrint]
+    Pretty --> Success[Success]
 
-    UpdateYAML[UpdateYAMLField]
-    UpdateYAML --> UpdateOk{update success?}
+    Err --> Stop[Exit 1]
 
-    UpdateOk -->|NO| ErrorExit8[Error: YAML write failed]
-    UpdateOk -->|YES| MarshalJSON
-
-    MarshalJSON[json.Marshal]
-    MarshalJSON --> MarshalOk{marshal ok?}
-
-    MarshalOk -->|NO| ErrorExit9[Error: JSON marshal]
-    MarshalOk -->|YES| JqPipe
-
-    JqPipe[pipe to jq for pretty print]
-    JqPipe --> JqExists{jq binary exists?}
-
-    JqExists -->|NO| ErrorExit10[❌ BUG: jq not found, already mutated YAML]
-    JqExists -->|YES| JqSuccess
-
-    JqSuccess{jq success?}
-    JqSuccess -->|NO| ErrorExit11[❌ BUG: jq failed, already mutated YAML]
-    JqSuccess -->|YES| End
-
-    End([Success])
-
-    ErrorExit1 --> Stop([Exit 1])
-    ErrorExit2 --> Stop
-    ErrorExit3 --> Stop
-    ErrorExit4 --> Stop
-    ErrorExit5 --> Stop
-    ErrorExit6 --> Stop
-    ErrorExit7 --> Stop
-    ErrorExit8 --> Stop
-    ErrorExit9 --> Stop
-    ErrorExit10 --> Stop
-    ErrorExit11 --> Stop
-
-    style ErrorExit4 fill:#ff6b6b
-    style ErrorExit5 fill:#ff6b6b
-    style ErrorExit10 fill:#ff6b6b
-    style ErrorExit11 fill:#ff6b6b
-    style ConfigCheck fill:#ffe66d
-    style KeyCheck fill:#ffe66d
-    style JqExists fill:#ffe66d
+    style Success fill:#51cf66,stroke:#2f9e44,color:#fff
+    style Exit fill:#51cf66,stroke:#2f9e44,color:#fff
+    style Stop fill:#ff6b6b,stroke:#c92a2a,color:#fff
+    style Err fill:#ff6b6b,stroke:#c92a2a,color:#fff

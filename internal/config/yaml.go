@@ -7,8 +7,10 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// UpdateYAMLField met à jour un champ YAML en préservant commentaires et structure
-// Supporte les chemins imbriqués avec notation pointée: "jira.sprint.boardId"
+// UpdateYAMLField updates a YAML field while preserving comments and structure.
+// Supports nested paths with dot notation: "github.labels" or "jira.sprint.boardId".
+// Creates missing intermediate keys automatically.
+// Creates the file if it doesn't exist.
 func UpdateYAMLField(filePath string, key string, value any) error {
 	// Lire le fichier existant (ou créer structure vide)
 	var root yaml.Node
@@ -149,7 +151,9 @@ func setNestedFieldRecursive(mappingNode *yaml.Node, keys []string, value any) e
 	}
 }
 
-// ReadYAMLField lit un champ depuis un fichier YAML
+// ReadYAMLField reads a specific field from a YAML file.
+// Supports nested paths with dot notation: "github.labels".
+// Returns error if file doesn't exist or key is not found.
 func ReadYAMLField(filePath string, key string) (any, error) {
 	data, err := os.ReadFile(filePath)
 	if err != nil {

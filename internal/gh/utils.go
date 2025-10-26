@@ -6,6 +6,8 @@ import (
 	"strings"
 )
 
+// VerifyGhAuthenticated checks if gh CLI is authenticated with GitHub.
+// Returns error with gh CLI output if authentication fails.
 func VerifyGhAuthenticated() error {
 	cmd := exec.Command("gh", "auth", "status")
 	output, err := cmd.CombinedOutput()
@@ -15,6 +17,8 @@ func VerifyGhAuthenticated() error {
 	return nil
 }
 
+// VerifyRemote checks if the current directory has a GitHub remote configured.
+// Returns error with gh CLI output if no remote is detected.
 func VerifyRemote() error {
 	cmd := exec.Command("gh", "repo", "view")
 	output, err := cmd.CombinedOutput()

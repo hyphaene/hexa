@@ -10,6 +10,9 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// GithubLabel represents a GitHub label.
+// JSON tags are used when parsing gh CLI output.
+// YAML tags are used when persisting to .hexa.yml.
 type GithubLabel struct {
 	Name        string `json:"name" yaml:"name"`
 	Description string `json:"description,omitempty" yaml:"description,omitempty"`
@@ -30,6 +33,9 @@ func validateLabels(labels []GithubLabel) error {
 	return nil
 }
 
+// ReadGithubLabelsFromConfig reads GitHub labels from .hexa.yml under github.labels field.
+// Returns empty slice if file or field doesn't exist (not an error for fresh repos).
+// Validates that all labels have required name and color fields.
 func ReadGithubLabelsFromConfig() ([]GithubLabel, error) {
 	configPath, err := config.GetProjectConfigPath()
 	if err != nil {
@@ -60,6 +66,9 @@ func ReadGithubLabelsFromConfig() ([]GithubLabel, error) {
 	return labels, nil
 }
 
+// FetchLabels fetches all labels from the current GitHub repository using gh CLI.
+// Requires gh to be authenticated and a GitHub remote to exist.
+// Validates that all returned labels have required name and color fields.
 func FetchLabels() ([]GithubLabel, error) {
 	cmd := exec.Command("gh", "label", "list", "--json", "name,description,color", "--jq", ".")
 
