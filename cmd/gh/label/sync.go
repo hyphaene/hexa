@@ -2,6 +2,7 @@ package label
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"os/exec"
 
@@ -53,18 +54,23 @@ func writeLabelsInProject() error {
 		return err
 	}
 
+	var promptErr error
 	if len(labels) > 0 {
-		huh.NewConfirm().
+		promptErr = huh.NewConfirm().
 			Title("Data already here, want to sync again?").
 			Affirmative("Yes!").
 			Negative("No.").
 			Value(&confirm).Run()
 	} else {
-		huh.NewConfirm().
+		promptErr = huh.NewConfirm().
 			Title("No data found, fetch from github ?").
 			Affirmative("Yes!").
 			Negative("No.").
 			Value(&confirm).Run()
+	}
+
+	if promptErr != nil {
+		return fmt.Errorf("interactive prompt failed (TTY required): %w", promptErr)
 	}
 
 	if confirm {

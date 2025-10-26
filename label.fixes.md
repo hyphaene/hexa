@@ -2,11 +2,11 @@ DONE. [HIGH] cmd/gh/label/sync.go:54 + internal/gh/labels.go:26 – ReadGithubLa
 
 DONE [HIGH] cmd/gh/label/sync.go:85 – config.GetProjectConfigPath still relies on os.Getwd(), so running the sync from a subdirectory will write .hexa.yml into that subdirectory rather than the repo root that git rev-parse --show-toplevel reports. That’s a regression now that the command persists data; please resolve through the git-root helper you already added (internal/git.GetRepoRootPath).
 
-[HIGH] alexandria (new symlink) – this introduces an absolute path to /Users/maximilien/... into the repo. It won’t exist on other machines and will break packaging; looks accidental and should be removed from the commit.
+DONE [HIGH] alexandria (new symlink) – this introduces an absolute path to /Users/maximilien/... into the repo. It won’t exist on other machines and will break packaging; looks accidental and should be removed from the commit.
 
-[MEDIUM] cmd/gh/label/sync.go:98 – the command shells out to jq for pretty-printing but never checks that the binary exists, so on hosts without jq the command fails after mutating the YAML. Prefer json.MarshalIndent (or at least detect the missing binary and fall back).
+DONE [MEDIUM] cmd/gh/label/sync.go:98 – the command shells out to jq for pretty-printing but never checks that the binary exists, so on hosts without jq the command fails after mutating the YAML. Prefer json.MarshalIndent (or at least detect the missing binary and fall back).
 
-[MEDIUM] cmd/gh/label/sync.go:65 – huh.NewConfirm().Run() errors (for example when run in a non-TTY, CI, or when bubbletea cannot initialize) are ignored, leaving confirm at its previous value. Please handle the error and surface a helpful message.
+DONE [MEDIUM] cmd/gh/label/sync.go:65 – huh.NewConfirm().Run() errors (for example when run in a non-TTY, CI, or when bubbletea cannot initialize) are ignored, leaving confirm at its previous value. Please handle the error and surface a helpful message.
 
 [MEDIUM] go.mod – adding github.com/charmbracelet/huh pulls ~20 transitive UI dependencies just to ask a yes/no question. That’s a hefty footprint for a CLI helper and complicates distribution; consider implementing confirms with stdlib (bufio.Scanner, fmt) or reuse an existing lightweight helper if you already vendor Bubble Tea elsewhere.
 
