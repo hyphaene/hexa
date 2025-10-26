@@ -1,6 +1,7 @@
 package label
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/hyphaene/hexa/internal/gh"
@@ -16,33 +17,29 @@ var LabelSyncCommand = &cobra.Command{
 	Use:   "sync",
 	Short: "Sync GitHub labels from a configuration file",
 	Long:  `Sync GitHub labels from a configuration file.`,
-	Run: func(cmd *cobra.Command, args []string) {
-		execute()
-		os.Stdout.WriteString("Label sync command executed\n")
+	RunE: func(cmd *cobra.Command, args []string) error {
+		return execute()
 	},
 }
 
-func execute() {
-
-	if err := git.VerifyCurrentDirectoryIsGitRepo(); err != nil {
-		os.Stderr.WriteString(err.Error() + "\n")
-		os.Exit(1)
-	}
-	if err := gh.VerifyGhAuthenticated(); err != nil {
-		os.Stderr.WriteString(err.Error() + "\n")
-		os.Exit(1)
-	}
-	if err := gh.VerifyRemote(); err != nil {
-		os.Stderr.WriteString(err.Error() + "\n")
-		os.Exit(1)
+func execute() error {
+	checks := []func() error{
+		git.VerifyCurrentDirectoryIsGitRepo,
+		gh.VerifyGhAuthenticated,
+		gh.VerifyRemote,
 	}
 
-	if path, err := git.GetRepoRootPath(); err != nil {
-		os.Stderr.WriteString(err.Error() + "\n")
-		os.Exit(1)
-	} else {
-		os.Stdout.WriteString("here is the repo/worktree path\n\n")
-		os.Stdout.WriteString(path)
-		os.Stdout.WriteString("\n\n")
+	for _, check := range checks {
+		if err := check(); err != nil {
+			return err
+		}
 	}
+
+	path, err := git.GetRepoRootPath()
+	if err != nil {
+		return err
+	}
+
+	fmt.Fprintf(os.Stdout, "here is the repo/worktree path\n\n%s\n\n", path)
+	return nil
 }

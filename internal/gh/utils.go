@@ -2,8 +2,10 @@ package gh
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"os/exec"
+	"strings"
 )
 
 func VerifyGhAuthenticated() error {
@@ -22,6 +24,21 @@ func VerifyRemote() error {
 		return errors.New("no remote detected")
 	} else {
 		os.Stdout.WriteString("Remote existant :)\n")
+	}
+	return nil
+}
+
+func FetchLabels() error {
+
+	/*
+		labels_json=$(gh label list --json name,description,color --jq '.')
+
+	*/
+
+	cmd := exec.Command("gh", "label", "list", "--json", "name,description,color", "--jq", "'.'")
+
+	if jsonResponse, err := cmd.CombinedOutput(); err != nil {
+		return fmt.Errorf("git rev-parse failed: %s (%w)", strings.TrimSpace(string(jsonResponse)), err)
 	}
 	return nil
 }
