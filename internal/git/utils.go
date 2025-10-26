@@ -17,9 +17,9 @@ func VerifyCurrentDirectoryIsGitRepo() error {
 
 func GetRepoRootPath() (string, error) {
 	cmd := exec.Command("git", "rev-parse", "--show-toplevel")
-	if sdtinOuput, err := cmd.CombinedOutput(); err != nil {
-		return "", fmt.Errorf("git rev-parse failed: %s (%w)", strings.TrimSpace(string(sdtinOuput)), err)
-	} else {
-		return strings.TrimSpace(string(sdtinOuput)), nil
+	stdoutOutput, err := cmd.CombinedOutput()
+	if err != nil {
+		return "", fmt.Errorf("failed to get repo root: %s (%w)", strings.TrimSpace(string(stdoutOutput)), err)
 	}
+	return strings.TrimSpace(string(stdoutOutput)), nil
 }

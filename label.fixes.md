@@ -32,7 +32,9 @@ Next steps: once the blockers above are resolved, I'd rerun npm run test and npm
 
 ### Structural Issues
 
-[HIGH] internal/config/yaml.go:164 – `splitKey()` function is undefined. The nested key parsing loop uses `splitKey(key)` but this function doesn't exist in the diff. Either it's missing or the code doesn't compile.
+MISSED [HIGH] internal/config/yaml.go:164 – `splitKey()` function is undefined. The nested key parsing loop uses `splitKey(key)` but this function doesn't exist in the diff. Either it's missing or the code doesn't compile.
+(func exists in code)
+
 
 [HIGH] internal/gh/labels.go:33-72 – `normalizeKeys()` is completely unnecessary. YAML unmarshaling with struct tags already handles case normalization. This function adds 40 lines of complexity for zero benefit. The recursive traversal of maps/slices is pure noise when `yaml.Unmarshal` already does this work.
 

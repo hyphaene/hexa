@@ -42,8 +42,8 @@ func ReadGithubLabelsFromConfig() ([]GithubLabel, error) {
 		return []GithubLabel{}, nil
 	}
 
-	// Re-marshal pour s'appuyer sur yaml.Unmarshal et profiter des tags struct
-	bytes, err := yaml.Marshal(normalizeKeys(raw))
+	// Marshal/unmarshal leverages struct tags for case-insensitive matching
+	bytes, err := yaml.Marshal(raw)
 	if err != nil {
 		return nil, fmt.Errorf("serializing labels: %w", err)
 	}
@@ -58,35 +58,6 @@ func ReadGithubLabelsFromConfig() ([]GithubLabel, error) {
 	}
 
 	return labels, nil
-}
-
-func normalizeKeys(value any) any {
-	switch typed := value.(type) {
-	case map[string]any:
-		normalized := make(map[string]any, len(typed))
-		for key, val := range typed {
-			normalized[strings.ToLower(key)] = normalizeKeys(val)
-		}
-		return normalized
-	case map[any]any:
-		normalized := make(map[string]any, len(typed))
-		for key, val := range typed {
-			strKey, ok := key.(string)
-			if !ok {
-				continue
-			}
-			normalized[strings.ToLower(strKey)] = normalizeKeys(val)
-		}
-		return normalized
-	case []any:
-		slice := make([]any, len(typed))
-		for i, val := range typed {
-			slice[i] = normalizeKeys(val)
-		}
-		return slice
-	default:
-		return typed
-	}
 }
 
 func FetchLabels() ([]GithubLabel, error) {
