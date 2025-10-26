@@ -25,6 +25,10 @@ var LabelSyncCommand = &cobra.Command{
 			os.Stderr.WriteString(err.Error() + "\n")
 			os.Exit(1)
 		}
+		if err := gh.VerifyRemote(); err != nil {
+			os.Stderr.WriteString(err.Error() + "\n")
+			os.Exit(1)
+		}
 
 		// if err := verifyGhCLIInstalled(); err != nil {
 		// 	os.Stderr.WriteString("GitHub CLI (gh) is not installed or not found in PATH\n")
