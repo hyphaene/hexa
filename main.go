@@ -11,6 +11,9 @@ import (
 	// Import commands to trigger their init() functions
 	_ "github.com/hyphaene/hexa/cmd/config"
 	_ "github.com/hyphaene/hexa/cmd/gh"
+	_ "github.com/hyphaene/hexa/cmd/gh/label"
+
+	// _ "github.com/hyphaene/hexa/cmd/gh/label/sync"
 	_ "github.com/hyphaene/hexa/cmd/jira"
 	_ "github.com/hyphaene/hexa/cmd/jira/ticket"
 	_ "github.com/hyphaene/hexa/cmd/self"
