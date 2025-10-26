@@ -1,6 +1,6 @@
-[HIGH] cmd/gh/label/sync.go:54 + internal/gh/labels.go:26 – ReadGithubLabelsFromConfig bubbles up os.ReadFile/ReadYAMLField errors when .hexa.yml or github.labels is absent, so the new hw gh label sync command exits before the confirm prompt and never fetches labels on a fresh repo. Guard the “missing file/field” case and treat it as “no existing data” instead of an error.
+DONE. [HIGH] cmd/gh/label/sync.go:54 + internal/gh/labels.go:26 – ReadGithubLabelsFromConfig bubbles up os.ReadFile/ReadYAMLField errors when .hexa.yml or github.labels is absent, so the new hw gh label sync command exits before the confirm prompt and never fetches labels on a fresh repo. Guard the “missing file/field” case and treat it as “no existing data” instead of an error.
 
-[HIGH] cmd/gh/label/sync.go:85 – config.GetProjectConfigPath still relies on os.Getwd(), so running the sync from a subdirectory will write .hexa.yml into that subdirectory rather than the repo root that git rev-parse --show-toplevel reports. That’s a regression now that the command persists data; please resolve through the git-root helper you already added (internal/git.GetRepoRootPath).
+DONE [HIGH] cmd/gh/label/sync.go:85 – config.GetProjectConfigPath still relies on os.Getwd(), so running the sync from a subdirectory will write .hexa.yml into that subdirectory rather than the repo root that git rev-parse --show-toplevel reports. That’s a regression now that the command persists data; please resolve through the git-root helper you already added (internal/git.GetRepoRootPath).
 
 [HIGH] alexandria (new symlink) – this introduces an absolute path to /Users/maximilien/... into the repo. It won’t exist on other machines and will break packaging; looks accidental and should be removed from the commit.
 

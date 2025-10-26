@@ -10,6 +10,7 @@ import (
 	"gopkg.in/yaml.v3"
 
 	"github.com/hyphaene/hexa/internal/env"
+	"github.com/hyphaene/hexa/internal/git"
 	"github.com/joho/godotenv"
 	"github.com/spf13/viper"
 )
@@ -77,7 +78,7 @@ func getRootConfig() map[string]any {
 }
 
 func GetProjectConfigPath() (string, error) {
-	workingDir, err := os.Getwd()
+	workingDir, err := git.GetRepoRootPath()
 	if err != nil {
 		if env.Debug {
 			fmt.Println("Error getting working directory:", err)
@@ -131,7 +132,7 @@ func GetProjectConfig() map[string]any {
 }
 
 func getSecretProjectConfig() map[string]any {
-	workingDir, err := os.Getwd()
+	workingDir, err := git.GetRepoRootPath()
 	if err != nil {
 		if env.Debug {
 			fmt.Println("Error getting working directory:", err)
