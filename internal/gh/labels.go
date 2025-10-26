@@ -16,8 +16,21 @@ type GithubLabel struct {
 	Color       string `json:"color" yaml:"color"`
 }
 
-func ReadGithubLabelsFromConfig() ([]GithubLabel, error) {
+// validateLabels checks that all labels have required fields
+// description is optional per GitHub API (has omitempty tag)
+func validateLabels(labels []GithubLabel) error {
+	for i, label := range labels {
+		if label.Name == "" {
+			return fmt.Errorf("label[%d]: name is required", i)
+		}
+		if label.Color == "" {
+			return fmt.Errorf("label[%d] (%s): color is required", i, label.Name)
+		}
+	}
+	return nil
+}
 
+func ReadGithubLabelsFromConfig() ([]GithubLabel, error) {
 	configPath, err := config.GetProjectConfigPath()
 	if err != nil {
 		return nil, err
@@ -25,10 +38,11 @@ func ReadGithubLabelsFromConfig() ([]GithubLabel, error) {
 
 	raw, err := config.ReadYAMLField(configPath, "github.labels")
 	if err != nil {
-		return nil, err
+		// File or key doesn't exist - legitimate case for fresh repo
+		return []GithubLabel{}, nil
 	}
 
-	// Re-marshal pour s’appuyer sur yaml.Unmarshal et profiter des tags struct
+	// Re-marshal pour s'appuyer sur yaml.Unmarshal et profiter des tags struct
 	bytes, err := yaml.Marshal(normalizeKeys(raw))
 	if err != nil {
 		return nil, fmt.Errorf("serializing labels: %w", err)
@@ -38,6 +52,11 @@ func ReadGithubLabelsFromConfig() ([]GithubLabel, error) {
 	if err := yaml.Unmarshal(bytes, &labels); err != nil {
 		return nil, fmt.Errorf("decoding github.labels: %w", err)
 	}
+
+	if err := validateLabels(labels); err != nil {
+		return nil, err
+	}
+
 	return labels, nil
 }
 
@@ -81,6 +100,10 @@ func FetchLabels() ([]GithubLabel, error) {
 	var labels []GithubLabel
 	if err := json.Unmarshal(response, &labels); err != nil {
 		return nil, fmt.Errorf("decoding gh response: %w", err)
+	}
+
+	if err := validateLabels(labels); err != nil {
+		return nil, err
 	}
 
 	return labels, nil

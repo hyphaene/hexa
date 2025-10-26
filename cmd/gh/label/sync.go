@@ -9,6 +9,7 @@ import (
 	"github.com/hyphaene/hexa/internal/config"
 	"github.com/hyphaene/hexa/internal/gh"
 	"github.com/hyphaene/hexa/internal/git"
+	"github.com/hyphaene/hexa/internal/jq"
 	"github.com/spf13/cobra"
 )
 
@@ -32,6 +33,8 @@ func execute() error {
 		git.VerifyCurrentDirectoryIsGitRepo,
 		gh.VerifyGhAuthenticated,
 		gh.VerifyRemote,
+		jq.VerifyJqInstalled,
+		config.EnsureProjectConfigExists,
 	}
 
 	for _, check := range checks {
@@ -40,28 +43,17 @@ func execute() error {
 		}
 	}
 
-	// fmt.Fprintf(os.Stdout, "json ok\n%+v\n", labels)
-
 	return writeLabelsInProject()
 }
 
 func writeLabelsInProject() error {
-	// projectConfFilePath, err := config.GetProjectConfigPath()
-	// if err != nil {
-	// 	return err
-	// }
 
 	labels, err := gh.ReadGithubLabelsFromConfig()
 	if err != nil {
 		return err
 	}
 
-	// labelsField, err := config.ReadYAMLField(projectConfFilePath, "github.labels")
-	// if err != nil {
-	// 	return err
-	// }
-
-	if labels != nil {
+	if len(labels) > 0 {
 		huh.NewConfirm().
 			Title("Data already here, want to sync again?").
 			Affirmative("Yes!").
@@ -95,16 +87,16 @@ func writeLabelsInProject() error {
 			return err
 		}
 
-		jq := exec.Command("jq", ".")
-		jq.Stdout = os.Stdout
-		jq.Stderr = os.Stderr
+		jqCmd := exec.Command("jq", ".")
+		jqCmd.Stdout = os.Stdout
+		jqCmd.Stderr = os.Stderr
 
-		stdin, err := jq.StdinPipe()
+		stdin, err := jqCmd.StdinPipe()
 		if err != nil {
 			return err
 		}
 
-		if err := jq.Start(); err != nil {
+		if err := jqCmd.Start(); err != nil {
 			return err
 		}
 
@@ -115,7 +107,7 @@ func writeLabelsInProject() error {
 			return err
 		}
 
-		if err := jq.Wait(); err != nil {
+		if err := jqCmd.Wait(); err != nil {
 			return err
 		}
 

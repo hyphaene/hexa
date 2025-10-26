@@ -1,0 +1,93 @@
+flowchart TD
+    Start([hexa gh label sync])
+
+    Start --> CheckGitRepo{git repo?}
+    CheckGitRepo -->|NO| ErrorExit1[Error: not a git repo]
+    CheckGitRepo -->|YES| CheckGhAuth
+
+    CheckGhAuth{gh authenticated?}
+    CheckGhAuth -->|NO| ErrorExit2[Error: gh not authenticated]
+    CheckGhAuth -->|YES| CheckRemote
+
+    CheckRemote{gh remote exists?}
+    CheckRemote -->|NO| ErrorExit3[Error: no remote]
+    CheckRemote -->|YES| ReadConfig
+
+    ReadConfig[ReadGithubLabelsFromConfig]
+    ReadConfig --> ConfigCheck{.hexa.yml exists?}
+
+    ConfigCheck -->|NO| ErrorExit4[❌ BUG: os.ReadFile error]
+    ConfigCheck -->|YES| KeyCheck
+
+    KeyCheck{github.labels exists?}
+    KeyCheck -->|NO| ErrorExit5[❌ BUG: ReadYAMLField error]
+    KeyCheck -->|YES| LabelsNil
+
+    LabelsNil{labels != nil?}
+    LabelsNil -->|YES| ConfirmSync[Confirm: Data exists, sync again?]
+    LabelsNil -->|NO| ConfirmFetch[Confirm: No data, fetch from GH?]
+
+    ConfirmSync --> UserConfirm1{user confirms?}
+    ConfirmFetch --> UserConfirm2{user confirms?}
+
+    UserConfirm1 -->|NO| Exit[Exit cleanly]
+    UserConfirm2 -->|NO| Exit
+
+    UserConfirm1 -->|YES| FetchLabels
+    UserConfirm2 -->|YES| FetchLabels
+
+    FetchLabels[gh label list --json]
+    FetchLabels --> FetchOk{fetch success?}
+
+    FetchOk -->|NO| ErrorExit6[Error: gh fetch failed]
+    FetchOk -->|YES| GetConfigPath
+
+    GetConfigPath[GetProjectConfigPath]
+    GetConfigPath --> PathOk{path resolved?}
+
+    PathOk -->|NO| ErrorExit7[Error: config path]
+    PathOk -->|YES| UpdateYAML
+
+    UpdateYAML[UpdateYAMLField]
+    UpdateYAML --> UpdateOk{update success?}
+
+    UpdateOk -->|NO| ErrorExit8[Error: YAML write failed]
+    UpdateOk -->|YES| MarshalJSON
+
+    MarshalJSON[json.Marshal]
+    MarshalJSON --> MarshalOk{marshal ok?}
+
+    MarshalOk -->|NO| ErrorExit9[Error: JSON marshal]
+    MarshalOk -->|YES| JqPipe
+
+    JqPipe[pipe to jq for pretty print]
+    JqPipe --> JqExists{jq binary exists?}
+
+    JqExists -->|NO| ErrorExit10[❌ BUG: jq not found, already mutated YAML]
+    JqExists -->|YES| JqSuccess
+
+    JqSuccess{jq success?}
+    JqSuccess -->|NO| ErrorExit11[❌ BUG: jq failed, already mutated YAML]
+    JqSuccess -->|YES| End
+
+    End([Success])
+
+    ErrorExit1 --> Stop([Exit 1])
+    ErrorExit2 --> Stop
+    ErrorExit3 --> Stop
+    ErrorExit4 --> Stop
+    ErrorExit5 --> Stop
+    ErrorExit6 --> Stop
+    ErrorExit7 --> Stop
+    ErrorExit8 --> Stop
+    ErrorExit9 --> Stop
+    ErrorExit10 --> Stop
+    ErrorExit11 --> Stop
+
+    style ErrorExit4 fill:#ff6b6b
+    style ErrorExit5 fill:#ff6b6b
+    style ErrorExit10 fill:#ff6b6b
+    style ErrorExit11 fill:#ff6b6b
+    style ConfigCheck fill:#ffe66d
+    style KeyCheck fill:#ffe66d
+    style JqExists fill:#ffe66d

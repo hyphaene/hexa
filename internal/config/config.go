@@ -87,6 +87,39 @@ func GetProjectConfigPath() (string, error) {
 	return filepath.Join(workingDir, ".hexa.yml"), nil
 }
 
+// EnsureProjectConfigExists creates .hexa.yml with minimal template if it doesn't exist
+func EnsureProjectConfigExists() error {
+	path, err := GetProjectConfigPath()
+	if err != nil {
+		return fmt.Errorf("getting project config path: %w", err)
+	}
+
+	if _, err := os.Stat(path); err == nil {
+		// File already exists
+		return nil
+	} else if !os.IsNotExist(err) {
+		// Real error (permission, etc)
+		return fmt.Errorf("checking config file: %w", err)
+	}
+
+	// File doesn't exist, create minimal template
+	template := `# Hexa Project Configuration
+
+github:
+  labels: []
+`
+
+	if err := os.WriteFile(path, []byte(template), 0644); err != nil {
+		return fmt.Errorf("creating config file: %w", err)
+	}
+
+	if env.Debug {
+		fmt.Printf("Created project config at: %s\n", path)
+	}
+
+	return nil
+}
+
 func GetProjectConfig() map[string]any {
 
 	configPath, _ := GetProjectConfigPath()
