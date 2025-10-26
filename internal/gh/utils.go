@@ -1,22 +1,25 @@
 package gh
 
 import (
-	"errors"
+	"fmt"
 	"os/exec"
+	"strings"
 )
 
 func VerifyGhAuthenticated() error {
 	cmd := exec.Command("gh", "auth", "status")
-	if _, err := cmd.CombinedOutput(); err != nil {
-		return errors.New("not authenticated with gh cli")
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("gh authentication failed: %s", strings.TrimSpace(string(output)))
 	}
 	return nil
 }
 
 func VerifyRemote() error {
 	cmd := exec.Command("gh", "repo", "view")
-	if _, err := cmd.CombinedOutput(); err != nil {
-		return errors.New("no remote detected")
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("no GitHub remote detected: %s", strings.TrimSpace(string(output)))
 	}
 	return nil
 }

@@ -8,11 +8,13 @@ DONE [MEDIUM] cmd/gh/label/sync.go:98 – the command shells out to jq for prett
 
 DONE [MEDIUM] cmd/gh/label/sync.go:65 – huh.NewConfirm().Run() errors (for example when run in a non-TTY, CI, or when bubbletea cannot initialize) are ignored, leaving confirm at its previous value. Please handle the error and surface a helpful message.
 
-[MEDIUM] go.mod – adding github.com/charmbracelet/huh pulls ~20 transitive UI dependencies just to ask a yes/no question. That’s a hefty footprint for a CLI helper and complicates distribution; consider implementing confirms with stdlib (bufio.Scanner, fmt) or reuse an existing lightweight helper if you already vendor Bubble Tea elsewhere.
+SKIP [MEDIUM] go.mod – adding github.com/charmbracelet/huh pulls ~20 transitive UI dependencies just to ask a yes/no question. That's a hefty footprint for a CLI helper and complicates distribution; consider implementing confirms with stdlib (bufio.Scanner, fmt) or reuse an existing lightweight helper if you already vendor Bubble Tea elsewhere. **Decision: keeping huh for future interactive features, cost amortized.**
 
-[LOW] cmd/gh/label/sync.go:19 – the package-level confirm bool carries state across command invocations and makes tests harder; an idiomatic approach keeps the variable local to the function that needs it.
-[LOW] cmd/gh/label/sync.go:43/79 – leftover debug/commented lines and the "c'est partiii" message stray from the project's English-facing output style; please clean them up.
-[LOW] internal/gh/utils.go:10/18 – the guard helpers discard the CLI output, so users only see "not authenticated/no remote detected". Capturing and returning the trimmed stderr would make the failure actionable.
+DONE [LOW] cmd/gh/label/sync.go:19 – the package-level confirm bool carries state across command invocations and makes tests harder; an idiomatic approach keeps the variable local to the function that needs it.
+
+
+DONE [LOW] cmd/gh/label/sync.go:43/79 – leftover debug/commented lines and the "c'est partiii" message stray from the project's English-facing output style; please clean them up.
+DONE [LOW] internal/gh/utils.go:10/18 – the guard helpers discard the CLI output, so users only see "not authenticated/no remote detected". Capturing and returning the trimmed stderr would make the failure actionable.
 Open questions / assumptions
 
 Should the sync command also guard against the absence of gh/jq by checking them up front (similar to VerifyGhAuthenticated)? That would align with the existing pre-flight pattern.

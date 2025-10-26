@@ -18,8 +18,6 @@ func init() {
 	LabelCommand.AddCommand(LabelSyncCommand)
 }
 
-var confirm bool
-
 var LabelSyncCommand = &cobra.Command{
 	Use:   "sync",
 	Short: "Sync GitHub labels from a configuration file",
@@ -48,6 +46,7 @@ func execute() error {
 }
 
 func writeLabelsInProject() error {
+	var confirm bool
 
 	labels, err := gh.ReadGithubLabelsFromConfig()
 	if err != nil {
@@ -74,8 +73,6 @@ func writeLabelsInProject() error {
 	}
 
 	if confirm {
-		os.Stdout.WriteString("c'est partiii\n")
-
 		fetchedLabels, err := gh.FetchLabels()
 		if err != nil {
 			return err
