@@ -17,14 +17,6 @@ func VerifyGhAuthenticated() error {
 }
 
 func VerifyRemote() error {
-	/*
-	   # Vérifier qu'il y a un remote GitHub
-	   if ! gh repo view &> /dev/null; then
-
-	   	error "Aucun remote GitHub détecté"
-
-	   fi
-	*/
 	cmd := exec.Command("gh", "repo", "view")
 	if _, err := cmd.CombinedOutput(); err != nil {
 		return errors.New("no remote detected")
