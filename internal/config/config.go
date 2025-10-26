@@ -78,14 +78,11 @@ func getRootConfig() map[string]any {
 }
 
 func GetProjectConfigPath() (string, error) {
-	workingDir, err := git.GetRepoRootPath()
+	repoRoot, err := git.GetRepoRootPath()
 	if err != nil {
-		if env.Debug {
-			fmt.Println("Error getting working directory:", err)
-			return "", err
-		}
+		return "", fmt.Errorf("failed to find git repo root: %w", err)
 	}
-	return filepath.Join(workingDir, ".hexa.yml"), nil
+	return filepath.Join(repoRoot, ".hexa.yml"), nil
 }
 
 // EnsureProjectConfigExists creates .hexa.yml with minimal template if it doesn't exist
